@@ -106,8 +106,8 @@ $ npm install
 
 ```shell
 ss://*****@127.0.0.1:8787
-resolving... *****.herokuapp.com
-trying... *.*.*.*
+resolving...
+trying...
 have a good time!
 ```
 
