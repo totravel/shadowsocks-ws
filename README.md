@@ -100,12 +100,18 @@ $ npm install
 }
 ```
 
-`dns` 字段可以尝试修改为 `https://doh.pub/dns-query`。
+`dns` 字段一般无须修改。下列取值供参考：
 
-双击文件 `start.cmd` 即可启动本地组件：
+- DNSPod `https://doh.pub/dns-query`
+- AliDNS `https://dns.alidns.com/resolve`
+- 360DNS `https://doh.360.cn/query`
+
+## 启用
+
+双击命令脚本 `start.cmd` 即可启动本地组件：
 
 ```shell
-ss://*****@127.0.0.1:8787
+ss://...
 resolving...
 trying...
 have a good time!
@@ -113,7 +119,7 @@ have a good time!
 
 首次使用，须完成下列步骤：
 
-1. 复制第一行 `ss://*****@127.0.0.1:8787` > 打开 Shadowsocks 客户端 > 在托盘区找到 Shadowsocks 客户端的图标 > 右击 > 服务器 > 从剪贴板导入 URL > ... > 确定。
+1. 复制第一行 `ss://...` > 打开 Shadowsocks 客户端 > 在托盘区找到 Shadowsocks 客户端的图标 > 右击 > 服务器 > 从剪贴板导入 URL > ... > 确定。
 1. 右击 Shadowsocks 客户端的图标 > PAC 模式 > 编辑 Geosite 的用户规则... > 在文件 `user-rule.txt` 中追加一行 `@@||herokuapp.com`。
 1. 右击 Shadowsocks 客户端的图标 > 系统代理 > PAC 模式。
 

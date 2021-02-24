@@ -24,6 +24,7 @@ console.clear();
     const hostname = url.parse(config.url).hostname;
     const options = {
         hostname,
+        timeout: 3000,
         headers: {
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Encoding': 'gzip, deflate, br',
@@ -32,33 +33,51 @@ console.clear();
         }
     };
 
-    let dnsRecord = null;
+    let record4 = [];
+    let record6 = [];
+    console.log('resolving...', hostname.gray);
+    const resolver = new DnsOverHttpResolver();
+    resolver.setServers([config.dns]);
     try {
-        console.log('resolving...', hostname.gray);
-        const resolver = new DnsOverHttpResolver();
-        resolver.setServers([config.dns]);
-        dnsRecord = await resolver.resolve(hostname);
-        verbose && console.log(dnsRecord);
-    } catch (err) {
-        console.log('doh', err);
+        record4 = await resolver.resolve4(hostname)
+    } catch (err) {}
+    try {
+        record6 = await resolver.resolve6(hostname);
+    } catch (err) {}
+    const record = record4.concat(record6);
+    if (record.length == 0) {
+        console.log('failed'.red);
         process.exit(1);
     }
+    if (verbose) console.log(record);
 
     let err = true;
-    for (const addr of dnsRecord) {
-        try {
-            console.log('trying...', addr.gray);
-            options.lookup = (h, o, cb) => cb(null, addr, 4);
-            await getCookie(options);
-            err = false;
-            break;
-        } catch (err) {}
+    let min = Infinity;
+    let fast = null;
+    for (const addr of record) {
+        const atyp = net.isIP(addr);
+        if (verbose) console.log(atyp);
+        if (atyp) {
+            try {
+                console.log('trying...', addr.gray);
+                options.lookup = (h, o, cb) => cb(null, addr, atyp);
+                let t = Date.now();
+                await testServer(options);
+                t = Date.now() - t;
+                console.log(t, 'msec'.gray);
+                if (t < min) min = t, fast = options.lookup;
+                err = false;
+            } catch (err) {
+                console.log('failed'.red);
+            }
+        }
     }
     if (err) {
         console.log('something happened'.red);
         process.exit(1);
     }
 
+    options.lookup = fast;
     startServer(config, options);
 })();
 
@@ -67,7 +86,7 @@ function showURL(c) {
     console.log(colors.gray('ss://' + userinfo + '@' + c.server + ':' + c.remote_port));
 }
 
-function getCookie(options) {
+function testServer(options) {
     return new Promise((resolve, reject) => {
         const req = https.request(options, res => {
             if (res.headers['set-cookie'])
@@ -77,9 +96,11 @@ function getCookie(options) {
                 res.setEncoding('utf8');
                 res.once('data', (chunk) => {
                     console.log(chunk.gray);
+                    resolve();
                 });
+            } else {
+                resolve();
             }
-            resolve();
         });
 
         req.on('timeout', () => {
@@ -105,7 +126,7 @@ function startServer(config, options) {
             c.pipe(ws.d);
 
             ws.d.on('error', err => {
-                verbose && console.log('pipe', err);
+                if (verbose) console.log('pipe', err);
             });
         });
 
@@ -122,7 +143,7 @@ function startServer(config, options) {
         });
 
         ws.on('error', err => {
-            verbose && console.log('remote', err);
+            if (verbose) console.log('remote', err);
             ws.d?.destroy();
             c.destroyed || c.destroy();
         });
@@ -133,7 +154,7 @@ function startServer(config, options) {
         });
 
         c.on('error', err => {
-            verbose && console.log('local', err);
+            if (verbose) console.log('local', err);
             ws.d?.destroy();
             ws.terminate();
         });
