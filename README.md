@@ -35,9 +35,9 @@ shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现�
 ```shell
 $ heroku auth:login -i
 heroku: Enter your login credentials
-Email: ******@gmail.com
-Password: ******
-Logged in as ******@gmail.com
+Email: your@example.com
+Password: *****
+Logged in as your@example.com
 ```
 
 如果你还没有 Heroku 账户，请前往 [Heroku 官网](https://www.heroku.com/) 注册。
@@ -47,7 +47,7 @@ Logged in as ******@gmail.com
 ```shell
 $ heroku keys:add
 Found an SSH public key at /path/to/id_rsa.pub
-? Would you like to upload it to Heroku? (Y/n) 
+? Would you like to upload it to Heroku? (Y/n) y
 ```
 
 如果你还没有 SSH 公钥，请阅读 [生成/添加SSH公钥](https://gitee.com/help/articles/4181)。
@@ -58,14 +58,14 @@ Found an SSH public key at /path/to/id_rsa.pub
 
 ```shell
 $ heroku create
-Creating app... done, ⬢ *****
-https://*****.herokuapp.com/ | https://git.heroku.com/*****.git
+Creating app... done, ⬢ xxxxx
+https://xxxxx.herokuapp.com/ | https://git.heroku.com/xxxxx.git
 ```
 
 设置加密算法、密码：
 
 ```shell
-$ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app *****
+$ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app xxxxx
 ```
 
 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密算法。
@@ -75,7 +75,7 @@ $ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app *****
 ```shell
 $ git clone https://github.com/totravel/shadowsocks-ws.git
 $ cd shadowsocks-ws
-$ git push https://git.heroku.com/*****.git master
+$ git push https://git.heroku.com/xxxxx.git master
 ```
 
 ## 本地配置
@@ -91,7 +91,7 @@ $ npm install
 ```json
 {
     "verbose": false,
-    "url": "wss://*****.herokuapp.com/",
+    "url": "wss://xxxxx.herokuapp.com/",
     "dns": "https://cloudflare-dns.com/dns-query",
     "server": "127.0.0.1",
     "remote_port": 8787,
@@ -114,6 +114,7 @@ $ npm install
 ss://...
 resolving...
 trying...
+using...
 have a good time!
 ```
 

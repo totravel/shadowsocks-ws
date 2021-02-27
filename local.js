@@ -39,7 +39,7 @@ console.clear();
     const resolver = new DnsOverHttpResolver();
     resolver.setServers([config.dns]);
     try {
-        record4 = await resolver.resolve4(hostname)
+        record4 = await resolver.resolve4(hostname);
     } catch (err) {}
     try {
         record6 = await resolver.resolve6(hostname);
@@ -51,7 +51,6 @@ console.clear();
     }
     if (verbose) console.log(record);
 
-    let err = true;
     let min = Infinity;
     let fast = null;
     for (const addr of record) {
@@ -64,20 +63,20 @@ console.clear();
                 let t = Date.now();
                 await testServer(options);
                 t = Date.now() - t;
-                console.log(t, 'msec'.gray);
-                if (t < min) min = t, fast = options.lookup;
-                err = false;
+                console.log('used %dms'.gray, t);
+                if (t < min) min = t, fast = {addr, atyp};
             } catch (err) {
-                console.log('failed'.red);
+                console.log('whoops!'.gray);
             }
         }
     }
-    if (err) {
-        console.log('something happened'.red);
+    if (fast == null) {
+        console.log('something bad happened'.red);
         process.exit(1);
     }
 
-    options.lookup = fast;
+    console.log('using', fast.addr);
+    options.lookup = (h, o, cb) => cb(null, fast.addr, fast.atyp);
     startServer(config, options);
 })();
 
