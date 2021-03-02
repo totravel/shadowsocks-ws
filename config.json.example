@@ -1,6 +1,6 @@
 {
     "verbose": false,
-    "url": "ws://localhost:8080/",
+    "url": "wss://localhost:8080/",
     "dns": "https://cloudflare-dns.com/dns-query",
     "server": "127.0.0.1",
     "remote_port": 8787,
