@@ -1,18 +1,23 @@
 {
   "name": "shadowsocks-ws",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Shadowsocks over WebSocket",
-  "engines": {
-    "node": "v15.9.0",
-    "npm": "v7.5.3"
+  "scripts": {
+    "start": "node server.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/totravel/shadowsocks-ws.git"
+  },
+  "homepage": "https://github.com/totravel/shadowsocks-ws",
+  "license": "MIT",
   "dependencies": {
     "colors": "^1.4.0",
     "dns-over-http-resolver": "^1.2.2",
     "ws": "^7.4.3"
   },
-  "scripts": {
-    "start": "node server.js"
-  },
-  "license": "MIT"
+  "engines": {
+    "node": "v15.10.0",
+    "npm": "v7.6.0"
+  }
 }

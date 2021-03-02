@@ -17,8 +17,8 @@ shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现�
 
 ## 环境要求
 
-- [Node.js](https://nodejs.org/zh-cn/download/current) 15.9.0+
-- [npm](https://nodejs.org/zh-cn/download/current) 7.5.3+
+- [Node.js](https://nodejs.org/zh-cn/download/current) 15.10.0+
+- [npm](https://nodejs.org/zh-cn/download/current) 7.6.0+
 - [Git](https://gitforwindows.org/)
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
 
@@ -106,21 +106,24 @@ $ npm install
 - AliDNS `https://dns.alidns.com/resolve`
 - 360DNS `https://doh.360.cn/query`
 
+`verbose` 字段决定程序在运行过程中是否输出详细的提示信息和错误信息。
+
 ## 启用
 
 双击命令脚本 `start.cmd` 即可启动本地组件：
 
 ```shell
+loading...
 ss://...
 resolving...
 trying...
-using...
+using ... used ...
 have a good time!
 ```
 
 首次使用，须完成下列步骤：
 
-1. 复制第一行 `ss://...` > 打开 Shadowsocks 客户端 > 在托盘区找到 Shadowsocks 客户端的图标 > 右击 > 服务器 > 从剪贴板导入 URL > ... > 确定。
+1. 复制链接 `ss://...` > 打开 Shadowsocks 客户端 > 在托盘区找到 Shadowsocks 客户端的图标 > 右击 > 服务器 > 从剪贴板导入 URL > ... > 确定。
 1. 右击 Shadowsocks 客户端的图标 > PAC 模式 > 编辑 Geosite 的用户规则... > 在文件 `user-rule.txt` 中追加一行 `@@||herokuapp.com`。
 1. 右击 Shadowsocks 客户端的图标 > 系统代理 > PAC 模式。
 

@@ -8,18 +8,16 @@ const colors = require('colors');
 const WebSocket = require('ws');
 const DnsOverHttpResolver = require('dns-over-http-resolver');
 
-console.clear();
-
 (async () => {
-    let config = null;
-    try {
-        config = JSON.parse(fs.readFileSync('config.json', {encoding: 'utf8'}));
-        showURL(config);
-        global.verbose = config.verbose;
-    } catch (err) {
-        console.log(err);
+    console.clear();
+    console.log('loading...');
+    const config = await loadConfig('config.json');
+    if (config === null) {
+        console.error('failed'.gray);
         process.exit(1);
-    };
+    }
+    global.verbose = config.verbose;
+    showURL(config);
 
     const hostname = url.parse(config.url).hostname;
     const options = {
@@ -33,20 +31,14 @@ console.clear();
         }
     };
 
-    let record4 = [];
-    let record6 = [];
     console.log('resolving...', hostname.gray);
     const resolver = new DnsOverHttpResolver();
-    resolver.setServers([config.dns]);
-    try {
-        record4 = await resolver.resolve4(hostname);
-    } catch (err) {}
-    try {
-        record6 = await resolver.resolve6(hostname);
-    } catch (err) {}
+    resolver.setServers([ config.dns ]);
+    const record4 = await resolve4(resolver, hostname);
+    const record6 = await resolve6(resolver, hostname);
     const record = record4.concat(record6);
-    if (record.length == 0) {
-        console.log('failed'.red);
+    if (record.length === 0) {
+        console.error('failed'.red);
         process.exit(1);
     }
     if (verbose) console.log(record);
@@ -57,32 +49,65 @@ console.clear();
         const atyp = net.isIP(addr);
         if (verbose) console.log(atyp);
         if (atyp) {
-            try {
-                console.log('trying...', addr.gray);
-                options.lookup = (h, o, cb) => cb(null, addr, atyp);
-                let t = Date.now();
-                await testServer(options);
-                t = Date.now() - t;
-                console.log('used %dms'.gray, t);
-                if (t < min) min = t, fast = {addr, atyp};
-            } catch (err) {
-                console.log('whoops!'.gray);
+            console.log('trying...', addr.gray);
+            options.lookup = (h, o, cb) => cb(null, addr, atyp);
+            let t = Date.now();
+            const available = await testServer(options);
+            t = Date.now() - t;
+            if (available) {
+                console.log('%dms'.gray, t);
+                if (t < min) min = t, fast = { addr, atyp };
+                continue;
             }
+            console.error('unavailable'.gray);
         }
     }
-    if (fast == null) {
-        console.log('something bad happened'.red);
+    if (fast === null) {
+        console.error('something bad happened'.red);
         process.exit(1);
     }
 
-    console.log('using', fast.addr);
+    console.log('using %s used %dms', fast.addr, min);
     options.lookup = (h, o, cb) => cb(null, fast.addr, fast.atyp);
     startServer(config, options);
 })();
 
+function loadConfig(path) {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(JSON.parse(fs.readFileSync(path, { encoding: 'utf8' })));
+        } catch (err) {
+            if (verbose) console.error('load'.red, err);
+            resolve(null);
+        }
+    });
+}
+
 function showURL(c) {
     const userinfo = Buffer.from(c.method + ':' + c.password).toString('base64');
     console.log(colors.gray('ss://' + userinfo + '@' + c.server + ':' + c.remote_port));
+}
+
+function resolve4(resolver, hostname) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            resolve(await resolver.resolve4(hostname));
+        } catch (err) {
+            if (verbose) console.error('ipv4'.red, err);
+            resolve([]);
+        }
+    });
+}
+
+function resolve6(resolver, hostname) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            resolve(await resolver.resolve6(hostname));
+        } catch (err) {
+            if (verbose) console.error('ipv6'.red, err);
+            resolve([]);
+        }
+    });
 }
 
 function testServer(options) {
@@ -95,19 +120,23 @@ function testServer(options) {
                 res.setEncoding('utf8');
                 res.once('data', (chunk) => {
                     console.log(chunk.gray);
-                    resolve();
+                    resolve(true);
                 });
             } else {
-                resolve();
+                resolve(true);
             }
         });
 
         req.on('timeout', () => {
-            reject(new Error('timeout'));
+            if (verbose) console.error('timeout'.red);
             req.destroy();
+            resolve(false);
         });
 
-        req.on('error', reject);
+        req.on('error', err => {
+            if (verbose) console.error('request'.red, err);
+            resolve(false);
+        });
 
         req.end();
     });
@@ -125,7 +154,7 @@ function startServer(config, options) {
             c.pipe(ws.d);
 
             ws.d.on('error', err => {
-                if (verbose) console.log('pipe', err);
+                if (verbose) console.error('pipe'.red, err);
             });
         });
 
@@ -135,14 +164,14 @@ function startServer(config, options) {
         });
 
         ws.on('unexpected-response', (req, res) => {
-            console.log('unexpected-response'.red);
+            console.error('unexpected-response'.red);
             ws.d?.destroy();
             c.destroyed || c.destroy();
             server.close();
         });
 
         ws.on('error', err => {
-            if (verbose) console.log('remote', err);
+            if (verbose) console.error('remote'.red, err);
             ws.d?.destroy();
             c.destroyed || c.destroy();
         });
@@ -153,14 +182,14 @@ function startServer(config, options) {
         });
 
         c.on('error', err => {
-            if (verbose) console.log('local', err);
+            if (verbose) console.error('local'.red, err);
             ws.d?.destroy();
             ws.terminate();
         });
     });
 
     server.on('error', err => {
-        console.log('server', err);
+        console.error('server'.red, err);
         process.exit(1);
     });
 
