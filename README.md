@@ -70,7 +70,7 @@ $ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app xxxxx
 
 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密算法。
 
-克隆代码到本地，再推送到 Heroku：
+克隆代码到本地，再推送到 APP：
 
 ```shell
 $ git clone https://github.com/totravel/shadowsocks-ws.git
@@ -83,7 +83,7 @@ $ git push https://git.heroku.com/xxxxx.git master
 安装：
 
 ```shell
-$ npm install
+$ npm i
 ```
 
 将配置文件 `config.json.example` 重命名为 `config.json` 并修改 `url`、`password` 和 `method` 字段。
@@ -110,10 +110,11 @@ $ npm install
 
 ## 启用
 
-双击命令脚本 `start.cmd` 即可启动本地组件：
+双击 `setup.cmd` 即可启动本地组件：
 
 ```shell
 loading...
+parsing...
 ss://...
 resolving...
 trying...

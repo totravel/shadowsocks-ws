@@ -4,9 +4,9 @@ const fs = require('fs');
 const net = require('net');
 const http = require('http');
 const WebSocket = require('ws').Server;
-const {EVP_BytesToKey, keySize, saltSize, tagSize, Encryption} = require('./encryption');
+const { EVP_BytesToKey, keySize, saltSize, tagSize, Encryption } = require('./encryption');
 
-const M = (process.env.METHOD == 'aes-256-gcm') ? 'aes-256-gcm' : 'chacha20-poly1305';
+const M = process.env.METHOD === 'aes-256-gcm' ? 'aes-256-gcm' : 'chacha20-poly1305';
 const PASS = process.env.PASS || 'secret';
 const PORT = process.env.PORT || 8080;
 const TIMEOUT = process.env.TIMEOUT || 3;
@@ -67,7 +67,7 @@ function getSalt(c) {
 function getLen(c) {
     if (c.buf.length < (2 + tagSize[M])) return;
 
-    if (c.decipher.decryptLen(c.buf.slice(0, 2 + tagSize[M])) == null) {
+    if (c.decipher.decryptLen(c.buf.slice(0, 2 + tagSize[M])) === null) {
         console.warn(c.clientAddr, 'invalid length');
         c.terminate();
         return;
@@ -84,7 +84,7 @@ function getPayload(c) {
 
     const ciphertext = c.buf.slice(0, c.decipher.len + tagSize[M]);
     c.payload = c.decipher.decryptPayload(ciphertext);
-    if (c.payload == null) {
+    if (c.payload === null) {
         console.warn(c.clientAddr, 'invalid payload');
         c.terminate();
         return;
@@ -102,14 +102,14 @@ function connectToDst(c) {
     var port;
 
     const atyp = c.payload[0];
-    if (atyp == 1) {
+    if (atyp === 1) {
         addr = inetNtoa(c.payload.slice(1, 5));
         port = c.payload.readUInt16BE(5);
-    } else if (atyp == 3) {
+    } else if (atyp === 3) {
         const addrLen = c.payload[1];
         addr = c.payload.slice(2, 2 + addrLen).toString('binary');
         port = c.payload.readUInt16BE(2 + addrLen);
-    } else if (atyp == 4) {
+    } else if (atyp === 4) {
         addr = inetNtop(c.payload.slice(1, 17));
         port = c.payload.readUInt16BE(17);
     } else {
@@ -162,7 +162,3 @@ const noop = () => {};
 const inetNtoa = buf => `${buf[0]}.${buf[1]}.${buf[2]}.${buf[3]}`;
 
 const inetNtop = buf => `${buf[0]}${buf[1]}:${buf[2]}${buf[3]}:${buf[4]}${buf[5]}:${buf[6]}${buf[7]}:${buf[8]}${buf[9]}:${buf[10]}${buf[11]}:${buf[12]}${buf[13]}:${buf[14]}${buf[15]}`;
-
-// node local -s 'wss://xxxxx.herokuapp.com/' -p 8787
-// ss-local -m aes-256-gcm -k secret -s 127.0.0.1 -p 8787 -l 1080 -v
-// curl www.baidu.com --socks5 127.0.0.1:1080 -v

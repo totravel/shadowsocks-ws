@@ -10,12 +10,23 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
 
 (async () => {
     console.clear();
+    const banner = await loadFile('banner.txt');
+    console.log(banner);
+
     console.log('loading...');
-    const config = await loadConfig('config.json');
-    if (config === null) {
-        console.error('failed'.gray);
+    const str = await loadFile('config.json');
+    if (str === null) {
+        console.error('failed'.red);
         process.exit(1);
     }
+
+    console.log('parsing...');
+    const config = await parseJSON(str);
+    if (config === null) {
+        console.error('failed'.red);
+        process.exit(1);
+    }
+
     global.verbose = config.verbose;
     showURL(config);
 
@@ -72,12 +83,23 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
     startServer(config, options);
 })();
 
-function loadConfig(path) {
+function loadFile(path) {
     return new Promise((resolve, reject) => {
         try {
-            resolve(JSON.parse(fs.readFileSync(path, { encoding: 'utf8' })));
+            resolve(fs.readFileSync(path, { encoding: 'utf8' }));
         } catch (err) {
-            if (verbose) console.error('load'.red, err);
+            console.error('fs'.red, err);
+            resolve(null);
+        }
+    });
+}
+
+function parseJSON(str) {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(JSON.parse(str));
+        } catch (err) {
+            console.error('json'.red, err);
             resolve(null);
         }
     });
@@ -164,7 +186,8 @@ function startServer(config, options) {
         });
 
         ws.on('unexpected-response', (req, res) => {
-            console.error('unexpected-response'.red);
+            console.error('unexpected response!'.red);
+            console.error('this means the server is not installed correctly.');
             ws.d?.destroy();
             c.destroyed || c.destroy();
             server.close();
