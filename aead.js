@@ -29,7 +29,7 @@ class AEAD {
         this.k = key;
         this.n = Buffer.alloc(nonceSize[this.a]);
         this.o = {};
-        if (this.a == 'chacha20-poly1305')
+        if (this.a === 'chacha20-poly1305')
             this.o.authTagLength = tagSize[this.a];
     }
 
@@ -59,15 +59,8 @@ class AEAD {
     incNonce() {
         const n = new Uint32Array(this.n.buffer);
         let i = 0;
-        do {
-            n[i]++;
-        } while (n[i] === 0 && ++i < n.length);
+        do n[i]++; while (n[i] === 0 && ++i < n.length);
     }
 }
 
-module.exports = {
-    keySize,
-    saltSize,
-    tagSize,
-    AEAD
-};
+module.exports = { keySize, saltSize, tagSize, AEAD };

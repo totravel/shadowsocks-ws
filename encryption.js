@@ -1,7 +1,7 @@
 "use strict";
 
 const crypto = require('crypto');
-const {keySize, saltSize, tagSize, AEAD} = require('./aead');
+const { keySize, saltSize, tagSize, AEAD } = require('./aead');
 
 class Encryption extends AEAD {
 
@@ -61,13 +61,7 @@ function EVP_BytesToKey(data, keyLen, ivLen = 0) {
     m = Buffer.concat(m);
     const key = m.slice(0, keyLen);
     const iv = m.slice(keyLen, keyLen + ivLen);
-    return {key, iv};
+    return { key, iv };
 }
 
-module.exports = {
-    keySize,
-    saltSize,
-    tagSize,
-    Encryption,
-    EVP_BytesToKey
-};
+module.exports = { keySize, saltSize, tagSize, Encryption, EVP_BytesToKey };
