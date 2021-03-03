@@ -13,6 +13,12 @@ shadowsocks-ws 既是一个 Shadowsocks 服务器，也是一个 Web 服务器�
 
 Shadowsocks 流量基于 WebSocket 协议传送给 Web 服务器，成为网站流量的一部分，再由 Web 服务器转交给 Shadowsocks 服务器，从而达到隐匿 Shadowsocks 流量的目的。
 
+```
+         socks5          tcp         websocket          tcp
+browser <------> client <---> local <-- gfw --> server <---> destination
+                 encrypt                        decrypt
+```
+
 shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现有 [Shadowsocks 客户端](https://github.com/shadowsocks/shadowsocks-windows) 使用。
 
 ## 环境要求
@@ -28,7 +34,7 @@ shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现�
 - [dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
 - [ws](https://github.com/websockets/ws)
 
-## Heroku 起步
+## 部署在 Heroku
 
 登录你的 Heroku 账户：
 
@@ -51,8 +57,6 @@ Found an SSH public key at /path/to/id_rsa.pub
 ```
 
 如果你还没有 SSH 公钥，请阅读 [生成/添加SSH公钥](https://gitee.com/help/articles/4181)。
-
-## 部署在 Heroku
 
 新建一个 APP：
 
@@ -108,7 +112,7 @@ $ npm i
 
 `verbose` 字段决定程序在运行过程中是否输出详细的提示信息和错误信息。
 
-## 启用
+## 使用
 
 双击 `setup.cmd` 即可启动本地组件：
 
