@@ -3,6 +3,7 @@
 const fs = require('fs');
 const url = require('url');
 const net = require('net');
+const http = require('http');
 const https = require('https');
 const colors = require('colors');
 const WebSocket = require('ws');
@@ -30,7 +31,8 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
     global.verbose = config.verbose;
     showURL(config);
 
-    const hostname = url.parse(config.url).hostname;
+    const parsedUrl = url.parse(config.url);
+    const hostname = parsedUrl.hostname;
     const options = {
         hostname,
         timeout: 3000,
@@ -38,7 +40,7 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0'
         }
     };
 
@@ -56,14 +58,15 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
 
     let min = Infinity;
     let fast = null;
+    const h = parsedUrl.protocol === 'wss:' ? https : http;
     for (const addr of record) {
         const atyp = net.isIP(addr);
         if (verbose) console.log(atyp);
         if (atyp) {
             console.log('trying...', addr.gray);
-            options.lookup = (h, o, cb) => cb(null, addr, atyp);
+            options.lookup = (host, opt, cb) => cb(null, addr, atyp);
             let t = Date.now();
-            const available = await testServer(options);
+            const available = await testServer(h, options);
             t = Date.now() - t;
             if (available) {
                 console.log('%dms'.gray, t);
@@ -79,8 +82,8 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
     }
 
     console.log('using %s used %dms', fast.addr, min);
-    options.lookup = (h, o, cb) => cb(null, fast.addr, fast.atyp);
-    startServer(config, options);
+    options.lookup = (host, opt, cb) => cb(null, fast.addr, fast.atyp);
+    startServer(config.url, config.remote_port, options);
 })();
 
 function loadFile(path) {
@@ -132,9 +135,9 @@ function resolve6(resolver, hostname) {
     });
 }
 
-function testServer(options) {
+function testServer(h, options) {
     return new Promise((resolve, reject) => {
-        const req = https.request(options, res => {
+        const req = h.request(options, res => {
             if (res.headers['set-cookie'])
                 options.headers.cookie = res.headers['set-cookie'][0].split(';')[0];
             if (verbose) {
@@ -164,11 +167,11 @@ function testServer(options) {
     });
 }
 
-function startServer(config, options) {
+function startServer(url, port, options) {
     const server = net.createServer();
 
     server.on('connection', c => {
-        const ws = new WebSocket(config.url, null, options);
+        const ws = new WebSocket(url, null, options);
 
         ws.on('open', () => {
             ws.d = WebSocket.createWebSocketStream(ws);
@@ -216,7 +219,7 @@ function startServer(config, options) {
         process.exit(1);
     });
 
-    server.listen(config.remote_port, () => {
+    server.listen(port, () => {
         console.log('have a good time!'.brightGreen);
     });
 }
