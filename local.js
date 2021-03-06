@@ -44,7 +44,7 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
         }
     };
 
-    console.log('resolving...', hostname.gray);
+    console.log('resolving. this could take a while...', hostname.gray);
     const resolver = new DnsOverHttpResolver();
     resolver.setServers([ config.dns ]);
     const record4 = await resolve4(resolver, hostname);
@@ -77,7 +77,7 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
         }
     }
     if (fast === null) {
-        console.error('something bad happened'.red);
+        console.error('something bad happened.'.red);
         process.exit(1);
     }
 
@@ -190,7 +190,7 @@ function startServer(url, port, options) {
 
         ws.on('unexpected-response', (req, res) => {
             console.error('unexpected response!'.red);
-            console.error('this means the server is not installed correctly.');
+            console.error('check your server and try again.');
             ws.d?.destroy();
             c.destroyed || c.destroy();
             server.close();
@@ -220,6 +220,7 @@ function startServer(url, port, options) {
     });
 
     server.listen(port, () => {
+        console.log('server has started. press Ctrl + C to stop.');
         console.log('have a good time!'.brightGreen);
     });
 }
