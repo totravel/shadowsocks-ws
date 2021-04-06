@@ -63,13 +63,13 @@ Found an SSH public key at /path/to/id_rsa.pub
 ```shell
 $ heroku create
 Creating app... done, ⬢ xxxxx
-https://xxxxx.herokuapp.com/ | https://git.heroku.com/xxxxx.git
+https://<app-name>.herokuapp.com/ | https://git.heroku.com/<app-name>.git
 ```
 
 设置加密算法、密码：
 
 ```shell
-$ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app xxxxx
+$ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app <app-name>
 ```
 
 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密算法。
@@ -79,7 +79,7 @@ $ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app xxxxx
 ```shell
 $ git clone https://github.com/totravel/shadowsocks-ws.git
 $ cd shadowsocks-ws
-$ git push https://git.heroku.com/xxxxx.git master
+$ git push https://git.heroku.com/<app-name>.git master
 ```
 
 ## 本地配置
@@ -90,15 +90,17 @@ $ git push https://git.heroku.com/xxxxx.git master
 $ npm i
 ```
 
-将配置文件 `config.json.example` 重命名为 `config.json` 并修改 `url`、`password` 和 `method` 字段。
+将配置文件 `config.json.example` 重命名为 `config.json` 并修改 `remote_address`、`password` 和 `method` 字段。
 
 ```json
 {
     "verbose": false,
-    "url": "wss://xxxxx.herokuapp.com/",
     "dns": "https://cloudflare-dns.com/dns-query",
-    "server": "127.0.0.1",
-    "remote_port": 8787,
+    "remote_address": "wss://<app-name>.herokuapp.com/",
+    "remote_port": 80,
+    "local_address": "127.0.0.1",
+    "local_port": 8787,
+    "timeout": 5,
     "password": "123456",
     "method": "chacha20-ietf-poly1305"
 }
@@ -110,23 +112,23 @@ $ npm i
 - AliDNS `https://dns.alidns.com/resolve`
 - 360DNS `https://doh.360.cn/query`
 
-`verbose` 字段决定程序在运行过程中是否输出详细的提示信息和错误信息。
+若将 `verbose` 字段的值修改为 `true`，本地组件将在运行过程中输出详细的提示信息和错误信息。
 
-## 使用
+## 开始使用
 
 双击 `setup.cmd` 即可启动本地组件：
 
 ```shell
 loading...
-parsing...
 ss://...
 resolving...
 trying...
 using ... used ...
+server has started
 have a good time!
 ```
 
-首次使用，须完成下列步骤：
+首次使用，须完成下列操作：
 
 1. 复制链接 `ss://...` > 打开 Shadowsocks 客户端 > 在托盘区找到 Shadowsocks 客户端的图标 > 右击 > 服务器 > 从剪贴板导入 URL > ... > 确定。
 1. 右击 Shadowsocks 客户端的图标 > PAC 模式 > 编辑 Geosite 的用户规则... > 在文件 `user-rule.txt` 中追加一行 `@@||herokuapp.com`。

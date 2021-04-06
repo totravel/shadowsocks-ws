@@ -1,6 +1,6 @@
 {
   "name": "shadowsocks-ws",
-  "version": "3.3.0",
+  "version": "3.3.2",
   "description": "Shadowsocks over WebSocket",
   "scripts": {
     "start": "node server.js"

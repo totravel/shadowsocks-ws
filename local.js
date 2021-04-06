@@ -1,6 +1,5 @@
 "use strict";
 
-const fs = require('fs');
 const url = require('url');
 const net = require('net');
 const http = require('http');
@@ -8,6 +7,7 @@ const https = require('https');
 const colors = require('colors');
 const WebSocket = require('ws');
 const DnsOverHttpResolver = require('dns-over-http-resolver');
+const { loadFile, parseJSON } = require('./helper');
 
 (async () => {
     console.clear();
@@ -15,24 +15,17 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
     console.log(banner);
 
     console.log('loading...');
-    const str = await loadFile('config.json');
-    if (str === null) {
-        console.error('failed'.red);
-        process.exit(1);
-    }
-
-    console.log('parsing...');
-    const config = await parseJSON(str);
+    const config = await parseJSON(await loadFile('config.json'));
     if (config === null) {
-        console.error('failed'.red);
+        console.error('failed to load config'.red);
         process.exit(1);
     }
 
     global.verbose = config.verbose;
     showURL(config);
 
-    const parsedUrl = url.parse(config.url);
-    const hostname = parsedUrl.hostname;
+    const parsed = url.parse(config.remote_address);
+    const hostname = parsed.hostname;
     const options = {
         hostname,
         timeout: 3000,
@@ -44,21 +37,27 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
         }
     };
 
-    console.log('resolving. this could take a while...', hostname.gray);
+    // console.log('debugging...');
+    // global.verbose = true;
+    // options.lookup = (host, opt, cb) => cb(null, '127.0.0.1', 4);
+    // start(config.remote_address, config.local_port, options);
+    // return;
+
+    console.log('resolving...', hostname.gray);
     const resolver = new DnsOverHttpResolver();
     resolver.setServers([ config.dns ]);
     const record4 = await resolve4(resolver, hostname);
     const record6 = await resolve6(resolver, hostname);
     const record = record4.concat(record6);
     if (record.length === 0) {
-        console.error('failed'.red);
+        console.error('failed to resolve host'.red);
         process.exit(1);
     }
     if (verbose) console.log(record);
 
     let min = Infinity;
     let fast = null;
-    const h = parsedUrl.protocol === 'wss:' ? https : http;
+    const h = parsed.protocol === 'wss:' ? https : http;
     for (const addr of record) {
         const atyp = net.isIP(addr);
         if (verbose) console.log(atyp);
@@ -66,51 +65,29 @@ const DnsOverHttpResolver = require('dns-over-http-resolver');
             console.log('trying...', addr.gray);
             options.lookup = (host, opt, cb) => cb(null, addr, atyp);
             let t = Date.now();
-            const available = await testServer(h, options);
+            const available = await attempt(h, options);
             t = Date.now() - t;
             if (available) {
                 console.log('%dms'.gray, t);
                 if (t < min) min = t, fast = { addr, atyp };
                 continue;
             }
-            console.error('unavailable'.gray);
+            console.log('unavailable'.gray);
         }
     }
     if (fast === null) {
-        console.error('something bad happened.'.red);
+        console.error('something bad happened'.red);
         process.exit(1);
     }
 
     console.log('using %s used %dms', fast.addr, min);
     options.lookup = (host, opt, cb) => cb(null, fast.addr, fast.atyp);
-    startServer(config.url, config.remote_port, options);
+    start(config.remote_address, config.local_port, options);
 })();
-
-function loadFile(path) {
-    return new Promise((resolve, reject) => {
-        try {
-            resolve(fs.readFileSync(path, { encoding: 'utf8' }));
-        } catch (err) {
-            console.error('fs'.red, err);
-            resolve(null);
-        }
-    });
-}
-
-function parseJSON(str) {
-    return new Promise((resolve, reject) => {
-        try {
-            resolve(JSON.parse(str));
-        } catch (err) {
-            console.error('json'.red, err);
-            resolve(null);
-        }
-    });
-}
 
 function showURL(c) {
     const userinfo = Buffer.from(c.method + ':' + c.password).toString('base64');
-    console.log(colors.gray('ss://' + userinfo + '@' + c.server + ':' + c.remote_port));
+    console.log(colors.gray('ss://' + userinfo + '@' + c.local_address + ':' + c.local_port));
 }
 
 function resolve4(resolver, hostname) {
@@ -135,7 +112,7 @@ function resolve6(resolver, hostname) {
     });
 }
 
-function testServer(h, options) {
+function attempt(h, options) {
     return new Promise((resolve, reject) => {
         const req = h.request(options, res => {
             if (res.headers['set-cookie'])
@@ -167,11 +144,11 @@ function testServer(h, options) {
     });
 }
 
-function startServer(url, port, options) {
+function start(remote_address, local_port, options) {
     const server = net.createServer();
 
     server.on('connection', c => {
-        const ws = new WebSocket(url, null, options);
+        const ws = new WebSocket(remote_address, null, options);
 
         ws.on('open', () => {
             ws.d = WebSocket.createWebSocketStream(ws);
@@ -189,8 +166,7 @@ function startServer(url, port, options) {
         });
 
         ws.on('unexpected-response', (req, res) => {
-            console.error('unexpected response!'.red);
-            console.error('check your server and try again.');
+            console.error('unexpected-response'.red, 'check your server and try again');
             ws.d?.destroy();
             c.destroyed || c.destroy();
             server.close();
@@ -219,8 +195,8 @@ function startServer(url, port, options) {
         process.exit(1);
     });
 
-    server.listen(port, () => {
-        console.log('server has started. press Ctrl + C to stop.');
+    server.listen(local_port, () => {
+        console.log('server has started');
         console.log('have a good time!'.brightGreen);
     });
 }

@@ -1,9 +1,9 @@
 "use strict";
 
 const crypto = require('crypto');
-const { keySize, saltSize, tagSize, AEAD } = require('./aead');
+const { keySize, saltSize, AEAD } = require('./aead');
 
-class Encryption extends AEAD {
+class Crypto extends AEAD {
 
     constructor(method, key, salt = crypto.randomBytes(saltSize[method])) {
         key = crypto.hkdfSync('sha1', key, salt, 'ss-subkey', keySize[method]);
@@ -11,17 +11,13 @@ class Encryption extends AEAD {
         this.c = [salt];
     }
 
-    decryptLen(c) {
-        let len = c.slice(0, 2);
-        let lenTag = c.slice(2);
-        len = this.decrypt(len, lenTag);
-        return this.len = len?.readUInt16BE(0);
+    decryptPayloadLength(c) {
+        let payloadLength = this.decrypt(c.slice(0, 2), c.slice(2));
+        return this.payloadLength = payloadLength ? payloadLength.readUInt16BE(0) : null;
     }
 
     decryptPayload(c) {
-        let payload = c.slice(0, this.len);
-        let payloadTag = c.slice(this.len);
-        return this.decrypt(payload, payloadTag);
+        return this.decrypt(c.slice(0, this.payloadLength), c.slice(this.payloadLength));
     }
 
     encryptData(m) {
@@ -35,9 +31,9 @@ class Encryption extends AEAD {
     }
 
     encryptChunk(m) {
-        let len = Buffer.alloc(2);
-        len.writeUInt16BE(m.length);
-        this.c.push(this.encrypt(len));
+        const l = Buffer.alloc(2);
+        l.writeUInt16BE(m.length);
+        this.c.push(this.encrypt(l));
         this.c.push(this.tag);
         this.c.push(this.encrypt(m));
         this.c.push(this.tag);
@@ -64,4 +60,4 @@ function EVP_BytesToKey(data, keyLen, ivLen = 0) {
     return { key, iv };
 }
 
-module.exports = { keySize, saltSize, tagSize, Encryption, EVP_BytesToKey };
+module.exports = { Crypto, EVP_BytesToKey };
