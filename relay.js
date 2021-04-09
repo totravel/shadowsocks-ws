@@ -6,64 +6,71 @@ const { Crypto } = require('./crypto');
 
 class Relay {
 
-    constructor(ws) {
+    constructor(ws, method, key, timeout) {
         this.ws = ws;
+        this.method = method;
+        this.key = key;
+        this.timeout = timeout;
+        this.tagSize = tagSize[method];
+        this.saltSize = saltSize[method];
         this.buf = Buffer.alloc(0);
         this.cb = this.getSalt;
         this.payloadHandler = this.connect;
 
         this.ws.on('message', (d) => {
-            if (! Buffer.isBuffer(d)) d = Buffer.from(d);
+            if (!Buffer.isBuffer(d)) d = Buffer.from(d);
             this.buf = Buffer.concat([this.buf, d]);
             this.cb();
         });
 
         this.ws.on('close', () => {
-            this.dst?.destroy();
+            if (this.dst) this.dst.destroyed || this.dst.destroy();
         });
 
-        this.ws.on('error', (e) => {
-            console.error(e);
-            this.dst?.destroy();
+        this.ws.on('error', (err) => {
+            console.error(err);
+            if (this.dst) this.dst.destroyed || this.dst.destroy();
         });
     }
 
     getSalt() {
-        if (this.buf.length < saltSize[METHOD]) return;
+        if (this.buf.length < this.saltSize) return;
 
-        this.decipher = new Crypto(METHOD, KEY, this.buf.slice(0, saltSize[METHOD]));
+        const salt = this.buf.slice(0, this.saltSize);
+        this.decipher = new Crypto(this.method, this.key, salt);
 
-        this.buf = this.buf.slice(saltSize[METHOD]);
+        this.buf = this.buf.slice(this.saltSize);
         this.cb = this.getPayloadLength;
         this.cb();
     }
 
     getPayloadLength() {
-        if (this.buf.length < (2 + tagSize[METHOD])) return;
+        if (this.buf.length < (2 + this.tagSize)) return;
 
-        if (this.decipher.decryptPayloadLength(this.buf.slice(0, 2 + tagSize[METHOD])) === null) {
+        const l = this.buf.slice(0, 2 + this.tagSize);
+        if (this.decipher.decryptPayloadLength(l) === null) {
             console.error('invalid password or cipher');
             this.ws.terminate();
             return;
         }
 
-        this.buf = this.buf.slice(2 + tagSize[METHOD]);
+        this.buf = this.buf.slice(2 + this.tagSize);
         this.cb = this.getPayload;
         this.cb();
     }
 
     getPayload() {
-        if (this.buf.length < (this.decipher.payloadLength + tagSize[METHOD])) return;
+        if (this.buf.length < (this.decipher.payloadLength + this.tagSize)) return;
 
-        const ciphertext = this.buf.slice(0, this.decipher.payloadLength + tagSize[METHOD]);
-        this.payload = this.decipher.decryptPayload(ciphertext);
+        const c = this.buf.slice(0, this.decipher.payloadLength + this.tagSize);
+        this.payload = this.decipher.decryptPayload(c);
         if (this.payload === null) {
             console.error('invalid password or cipher');
             this.ws.terminate();
             return;
         }
 
-        this.buf = this.buf.slice(this.decipher.payloadLength + tagSize[METHOD]);
+        this.buf = this.buf.slice(this.decipher.payloadLength + this.tagSize);
         this.cb = noop;
         this.payloadHandler();
         this.payload = Buffer.alloc(0);
@@ -94,12 +101,12 @@ class Relay {
 
         this.dst = net.createConnection(port, addr);
         this.dst.on('connect', () => {
-            this.cipher = new Crypto(METHOD, KEY);
+            this.cipher = new Crypto(this.method, this.key);
             this.payloadHandler = this.send;
             this.cb = this.getPayloadLength;
             this.cb();
 
-            this.dst.setTimeout(TIMEOUT * 1000, () => {
+            this.dst.setTimeout(this.timeout * 1000, () => {
                 this.dst.destroy();
             });
         });
@@ -112,8 +119,8 @@ class Relay {
             this.ws.terminate();
         });
 
-        this.dst.on('error', (e) => {
-            console.error(e);
+        this.dst.on('error', (err) => {
+            console.error(err);
             this.ws.terminate();
         });
     }

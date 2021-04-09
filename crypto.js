@@ -2,12 +2,13 @@
 
 const crypto = require('crypto');
 const { keySize, saltSize, AEAD } = require('./aead');
+const hkdf = require('futoin-hkdf');
 
 class Crypto extends AEAD {
 
     constructor(method, key, salt = crypto.randomBytes(saltSize[method])) {
-        key = crypto.hkdfSync('sha1', key, salt, 'ss-subkey', keySize[method]);
-        super(method, key);
+        const dk = hkdf(key, keySize[method], {salt, info: 'ss-subkey', hash: 'sha1'});
+        super(method, dk);
         this.c = [salt];
     }
 
@@ -45,12 +46,11 @@ class Crypto extends AEAD {
 
 // https://www.openssl.org/docs/man1.1.1/man3/EVP_BytesToKey.html
 function EVP_BytesToKey(data, keyLen, ivLen = 0) {
-    const md5 = crypto.createHash('md5');
     let m = [];
     let d = '';
     let count = 0;
     do {
-        d = md5.copy().update(d).update(data).digest();
+        d = crypto.createHash('md5').update(d).update(data).digest();
         m.push(d);
         count += d.length;
     } while (count < keyLen + ivLen);

@@ -22,4 +22,8 @@ function parseJSON(str) {
     });
 }
 
-module.exports = { loadFile, parseJSON };
+function getNodeMajorVersion() {
+    return Number(process.version.substring(1).split('.')[0]);
+}
+
+module.exports = { loadFile, parseJSON, getNodeMajorVersion };

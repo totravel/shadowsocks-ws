@@ -37,11 +37,13 @@ const { loadFile, parseJSON } = require('./helper');
         }
     };
 
-    // console.log('debugging...');
-    // global.verbose = true;
-    // options.lookup = (host, opt, cb) => cb(null, '127.0.0.1', 4);
-    // start(config.remote_address, config.local_port, options);
-    // return;
+    if (config.debug) {
+        console.log('debugging...');
+        global.verbose = true;
+        options.lookup = (host, opt, cb) => cb(null, '127.0.0.1', 4);
+        start(config.remote_address, config.local_port, options);
+        return;
+    }
 
     console.log('resolving...', hostname.gray);
     const resolver = new DnsOverHttpResolver();
@@ -87,7 +89,8 @@ const { loadFile, parseJSON } = require('./helper');
 
 function showURL(c) {
     const userinfo = Buffer.from(c.method + ':' + c.password).toString('base64');
-    console.log(colors.gray('ss://' + userinfo + '@' + c.local_address + ':' + c.local_port));
+    const url = 'ss://' + userinfo + '@' + c.local_address + ':' + c.local_port;
+    console.log(url.gray);
 }
 
 function resolve4(resolver, hostname) {
@@ -95,7 +98,7 @@ function resolve4(resolver, hostname) {
         try {
             resolve(await resolver.resolve4(hostname));
         } catch (err) {
-            if (verbose) console.error('ipv4'.red, err);
+            if (verbose) console.error('resolve4'.red, err);
             resolve([]);
         }
     });
@@ -106,7 +109,7 @@ function resolve6(resolver, hostname) {
         try {
             resolve(await resolver.resolve6(hostname));
         } catch (err) {
-            if (verbose) console.error('ipv6'.red, err);
+            if (verbose) console.error('resolve6'.red, err);
             resolve([]);
         }
     });
@@ -151,41 +154,41 @@ function start(remote_address, local_port, options) {
         const ws = new WebSocket(remote_address, null, options);
 
         ws.on('open', () => {
-            ws.d = WebSocket.createWebSocketStream(ws);
-            ws.d.pipe(c);
-            c.pipe(ws.d);
+            ws.s = WebSocket.createWebSocketStream(ws);
+            ws.s.pipe(c);
+            c.pipe(ws.s);
 
-            ws.d.on('error', err => {
+            ws.s.on('error', err => {
                 if (verbose) console.error('pipe'.red, err);
             });
         });
 
         ws.on('close', () => {
-            ws.d?.destroy();
+            ws.s?.destroy();
             c.destroyed || c.destroy();
         });
 
         ws.on('unexpected-response', (req, res) => {
             console.error('unexpected-response'.red, 'check your server and try again');
-            ws.d?.destroy();
+            ws.s?.destroy();
             c.destroyed || c.destroy();
             server.close();
         });
 
         ws.on('error', err => {
-            if (verbose) console.error('remote'.red, err);
-            ws.d?.destroy();
+            if (verbose) console.error('ws'.red, err);
+            ws.s?.destroy();
             c.destroyed || c.destroy();
         });
 
         c.on('close', () => {
-            ws.d?.destroy();
+            ws.s?.destroy();
             ws.terminate();
         });
 
         c.on('error', err => {
-            if (verbose) console.error('local'.red, err);
-            ws.d?.destroy();
+            if (verbose) console.error('connection'.red, err);
+            ws.s?.destroy();
             ws.terminate();
         });
     });

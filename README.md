@@ -23,8 +23,8 @@ shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现�
 
 ## 环境要求
 
-- [Node.js](https://nodejs.org/zh-cn/download/current) 15.10.0+
-- [npm](https://nodejs.org/zh-cn/download/current) 7.6.0+
+- [Node.js](https://nodejs.org/zh-cn/download/current) 12.20.1+
+- [npm](https://nodejs.org/zh-cn/download/current) 7.0.2+
 - [Git](https://gitforwindows.org/)
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
 
@@ -33,6 +33,7 @@ shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现�
 - [colors](https://github.com/Marak/colors.js)
 - [dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
 - [ws](https://github.com/websockets/ws)
+- [futoin-hkdf](https://github.com/futoin/util-js-hkdf)
 
 ## 部署在 Heroku
 
@@ -94,6 +95,7 @@ $ npm i
 
 ```json
 {
+    "debug": false,
     "verbose": false,
     "dns": "https://cloudflare-dns.com/dns-query",
     "remote_address": "wss://<app-name>.herokuapp.com/",
@@ -111,8 +113,6 @@ $ npm i
 - DNSPod `https://doh.pub/dns-query`
 - AliDNS `https://dns.alidns.com/resolve`
 - 360DNS `https://doh.360.cn/query`
-
-若将 `verbose` 字段的值修改为 `true`，本地组件将在运行过程中输出详细的提示信息和错误信息。
 
 ## 开始使用
 
