@@ -9,7 +9,7 @@ const { EVP_BytesToKey } = require('./crypto');
 
 const PORT    = process.env.PORT    || 80;
 const PASS    = process.env.PASS    || 'secret';
-const METHOD  = process.env.METHOD  || 'chacha20-poly1305';
+const METHOD  = process.env.METHOD === 'aes-256-gcm' ? 'aes-256-gcm' : 'chacha20-poly1305';
 const TIMEOUT = process.env.TIMEOUT || 5;
 const KEY     = EVP_BytesToKey(PASS, keySize[METHOD]).key;
 
