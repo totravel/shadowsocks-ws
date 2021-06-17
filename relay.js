@@ -106,7 +106,7 @@ class Relay {
             this.cb = this.getPayloadLength;
             this.cb();
 
-            this.dst.setTimeout(this.timeout * 1000, () => {
+            this.dst.setTimeout(this.timeout, () => {
                 this.dst.destroy();
             });
         });
