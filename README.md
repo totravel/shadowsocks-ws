@@ -37,6 +37,10 @@ shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现�
 
 ## 部署在 Heroku
 
+点击下面这个按钮，一键部署到 Heroku：
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
 登录你的 Heroku 账户：
 
 ```shell
