@@ -2,8 +2,6 @@
 # Shadowsocks over WebSocket
 
 [![Build Status](https://travis-ci.org/totravel/shadowsocks-ws.svg?branch=master)](https://travis-ci.org/totravel/shadowsocks-ws)
-![Lines of code](https://img.shields.io/tokei/lines/github/totravel/shadowsocks-ws)
-![GitHub repo size](https://img.shields.io/github/repo-size/totravel/shadowsocks-ws)
 ![License](https://img.shields.io/github/license/totravel/shadowsocks-ws)
 ![GitHub last commit](https://img.shields.io/github/last-commit/totravel/shadowsocks-ws)
 
@@ -35,13 +33,17 @@ shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现�
 - [ws](https://github.com/websockets/ws)
 - [futoin-hkdf](https://github.com/futoin/util-js-hkdf)
 
-## 部署在 Heroku
+## 部署到 Heroku
 
-点击下面这个按钮，一键部署到 Heroku：
+### 一键部署
+
+点击下面这个按钮：
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-登录你的 Heroku 账户：
+### 手动部署
+
+打开终端，登录你的 Heroku 账户：
 
 ```shell
 $ heroku auth:login -i
@@ -71,13 +73,13 @@ Creating app... done, ⬢ xxxxx
 https://<app-name>.herokuapp.com/ | https://git.heroku.com/<app-name>.git
 ```
 
-设置加密算法、密码：
+设置加密方法、密码：
 
 ```shell
 $ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app <app-name>
 ```
 
-仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密算法。
+仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密方法。
 
 克隆代码到本地，再推送到 APP：
 
@@ -89,20 +91,22 @@ $ git push https://git.heroku.com/<app-name>.git master
 
 ## 本地配置
 
-安装：
+克隆代码到本地，安装依赖的软件包：
 
 ```shell
+$ git clone https://github.com/totravel/shadowsocks-ws.git
+$ cd shadowsocks-ws
 $ npm i
 ```
 
-将配置文件 `config.json.example` 重命名为 `config.json` 并修改 `remote_address`、`password` 和 `method` 字段。
+将配置文件 `config.json.example` 重命名为 `config.json` 并修改 `remote_address`、`password` 和 `method` 三个字段。
 
 ```json
 {
     "debug": false,
     "verbose": false,
     "dns": "https://cloudflare-dns.com/dns-query",
-    "remote_address": "wss://<app-name>.herokuapp.com/",
+    "remote_address": "ws://<app-name>.herokuapp.com/",
     "remote_port": 80,
     "local_address": "127.0.0.1",
     "local_port": 8787,
@@ -111,6 +115,8 @@ $ npm i
     "method": "chacha20-ietf-poly1305"
 }
 ```
+
+`remote_address` 字段的开头也可修改为 `wss://`。
 
 `dns` 字段一般无须修改。下列取值供参考：
 
@@ -134,9 +140,10 @@ have a good time!
 
 首次使用，须完成下列操作：
 
-1. 复制链接 `ss://...` > 打开 Shadowsocks 客户端 > 在托盘区找到 Shadowsocks 客户端的图标 > 右击 > 服务器 > 从剪贴板导入 URL > ... > 确定。
-1. 右击 Shadowsocks 客户端的图标 > PAC 模式 > 编辑 Geosite 的用户规则... > 在文件 `user-rule.txt` 中追加一行 `@@||herokuapp.com`。
-1. 右击 Shadowsocks 客户端的图标 > 系统代理 > PAC 模式。
+- 复制开头的 `ss://...`
+- 在托盘区找到 Shadowsocks 客户端的图标 > 右击
+    - 服务器 > 从剪贴板导入 URL
+    - 系统代理 > PAC 模式
 
 此后每次使用只须启动本地组件和 Shadowsocks 客户端即可。
 

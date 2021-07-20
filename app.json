@@ -3,11 +3,11 @@
   "repository": "https://github.com/totravel/shadowsocks-ws",
   "env": {
     "METHOD": {
-      "description": "加密算法",
+      "description": "Only 'chacha20-ietf-poly1305' and 'aes-256-gcm' are supported.",
       "value": "chacha20-ietf-poly1305"
     },
     "PASS": {
-      "description": "密码",
+      "description": "Your password.",
       "generator": "secret"
     }
   }
