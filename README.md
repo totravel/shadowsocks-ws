@@ -103,7 +103,6 @@ $ npm i
 
 ```json
 {
-    "debug": false,
     "verbose": false,
     "dns": "https://cloudflare-dns.com/dns-query",
     "remote_address": "ws://<app-name>.herokuapp.com/",

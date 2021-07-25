@@ -11,8 +11,7 @@ const { loadFile, parseJSON } = require('./helper');
 
 (async () => {
     console.clear();
-    const banner = await loadFile('banner.txt');
-    console.log(banner);
+    console.log(await loadFile('banner.txt'));
 
     console.log('loading...');
     const config = await parseJSON(await loadFile('config.json'));
@@ -27,9 +26,9 @@ const { loadFile, parseJSON } = require('./helper');
     const parsed = url.parse(config.remote_address);
     const hostname = parsed.hostname;
     const options = {
-        hostname,
         timeout: 5000,
         headers: {
+            'Host': hostname,
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
@@ -37,54 +36,42 @@ const { loadFile, parseJSON } = require('./helper');
         }
     };
 
-    if (config.debug) {
-        console.log('debugging...');
-        global.verbose = true;
-        options.lookup = (host, opt, cb) => cb(null, '127.0.0.1', 4);
-        start(config.remote_address, config.local_port, options);
-        return;
-    }
-
     console.log('resolving...', hostname.gray);
     const resolver = new DnsOverHttpResolver();
     resolver.setServers([ config.dns ]);
-    const record4 = await resolve4(resolver, hostname);
-    const record6 = await resolve6(resolver, hostname);
-    const record = record4.concat(record6);
-    if (record.length === 0) {
+    const records4 = await resolve4(resolver, hostname);
+    const records6 = await resolve6(resolver, hostname);
+    const records = records4.concat(records6);
+    if (records.length === 0) {
         console.error('failed to resolve host'.red);
         process.exit(1);
     }
-    if (verbose) console.log(record);
+    if (verbose) console.log(records);
 
-    let min = Infinity;
-    let fast = null;
-    const h = parsed.protocol === 'wss:' ? https : http;
-    for (const addr of record) {
-        const atyp = net.isIP(addr);
-        if (verbose) console.log(atyp);
+    let min = Infinity, addr = null;
+    for (const record of records) {
+        const atyp = net.isIP(record);
         if (atyp) {
-            console.log('trying...', addr.gray);
-            options.lookup = (host, opt, cb) => cb(null, addr, atyp);
+            console.log('trying...', record.gray);
+            options.host = record;
             let t = Date.now();
-            const available = await attempt(h, options);
+            const retval = await attempt(parsed.protocol, options);
             t = Date.now() - t;
-            if (available) {
+            if (retval) {
                 console.log('%dms'.gray, t);
-                if (t < min) min = t, fast = { addr, atyp };
+                if (t < min) min = t, addr = record;
                 continue;
             }
-            console.log('unavailable'.gray);
+            console.log('failed'.gray);
         }
     }
-    if (fast === null) {
+    if (addr === null) {
         console.error('something bad happened'.red);
         process.exit(1);
     }
+    console.log('using %s used %dms', addr, min);
 
-    console.log('using %s used %dms', fast.addr, min);
-    options.lookup = (host, opt, cb) => cb(null, fast.addr, fast.atyp);
-    start(config.remote_address, config.local_port, options);
+    start(parsed.protocol + addr, config.local_port, options);
 })();
 
 function showURL(c) {
@@ -115,15 +102,16 @@ function resolve6(resolver, hostname) {
     });
 }
 
-function attempt(h, options) {
+function attempt(protocol, options) {
     return new Promise((resolve, reject) => {
-        const req = h.request(options, res => {
-            if (res.headers['set-cookie'])
+        const req = (protocol === 'wss:' ? https : http).request(options, res => {
+            if (res.headers['set-cookie']) {
+                if (verbose) console.log(res.headers['set-cookie']);
                 options.headers.cookie = res.headers['set-cookie'][0].split(';')[0];
+            }
             if (verbose) {
-                console.log(res.headers['set-cookie']);
                 res.setEncoding('utf8');
-                res.once('data', (chunk) => {
+                res.once('data', chunk => {
                     console.log(chunk.gray);
                     resolve(true);
                 });
@@ -138,20 +126,16 @@ function attempt(h, options) {
             resolve(false);
         });
 
-        req.on('error', err => {
-            if (verbose) console.error('request'.red, err);
-            resolve(false);
-        });
-
+        req.on('error', err => null);
         req.end();
     });
 }
 
-function start(remote_address, local_port, options) {
+function start(ip_address, local_port, options) {
     const server = net.createServer();
 
     server.on('connection', c => {
-        const ws = new WebSocket(remote_address, null, options);
+        const ws = new WebSocket(ip_address, options);
 
         ws.on('open', () => {
             ws.s = WebSocket.createWebSocketStream(ws);
