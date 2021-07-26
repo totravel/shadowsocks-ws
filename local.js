@@ -23,18 +23,26 @@ const { loadFile, parseJSON } = require('./helper');
     global.verbose = config.verbose;
     showURL(config);
 
+    const timeout = config.timeout;
     const parsed = url.parse(config.remote_address);
     const hostname = parsed.hostname;
     const options = {
-        timeout: 5000,
+        timeout,
         headers: {
-            'Host': hostname,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0'
+            'Accept-Encoding': 'gzip, deflate, br'
         }
     };
+
+    if (net.isIP(hostname)) {
+        start(config.remote_address, config.local_port, options);
+        return;
+    }
+    options.origin = parsed.protocol === 'wss:' ? 'https://' : 'http://';
+    options.origin += hostname;
+    options.headers.Host = hostname;
 
     console.log('resolving...', hostname.gray);
     const resolver = new DnsOverHttpResolver();
@@ -71,7 +79,7 @@ const { loadFile, parseJSON } = require('./helper');
     }
     console.log('using %s used %dms', addr, min);
 
-    start(parsed.protocol + addr, config.local_port, options);
+    start(parsed.protocol + '//' + addr, config.local_port, options);
 })();
 
 function showURL(c) {
@@ -131,11 +139,11 @@ function attempt(protocol, options) {
     });
 }
 
-function start(ip_address, local_port, options) {
+function start(remote_address, local_port, options) {
     const server = net.createServer();
 
     server.on('connection', c => {
-        const ws = new WebSocket(ip_address, options);
+        const ws = new WebSocket(remote_address, options);
 
         ws.on('open', () => {
             ws.s = WebSocket.createWebSocketStream(ws);
