@@ -40,9 +40,15 @@ const { loadFile, parseJSON } = require('./helper');
         start(config.remote_address, config.local_port, options);
         return;
     }
+
     options.origin = parsed.protocol === 'wss:' ? 'https://' : 'http://';
     options.origin += hostname;
     options.headers.Host = hostname;
+
+    if (net.isIP(config.lookup)) {
+        start(parsed.protocol + '//' + config.lookup, config.local_port, options);
+        return;
+    }
 
     console.log('resolving...', hostname.gray);
     const resolver = new DnsOverHttpResolver();

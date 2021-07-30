@@ -37,7 +37,7 @@ shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现�
 
 ### 一键部署
 
-点击下面这个按钮：
+点击下面的按钮并根据提示操作。
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
@@ -70,13 +70,13 @@ Found an SSH public key at /path/to/id_rsa.pub
 ```shell
 $ heroku create
 Creating app... done, ⬢ xxxxx
-https://<app-name>.herokuapp.com/ | https://git.heroku.com/<app-name>.git
+https://<your-app>.herokuapp.com/ | https://git.heroku.com/<your-app>.git
 ```
 
 设置加密方法、密码：
 
 ```shell
-$ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app <app-name>
+$ heroku config:set METHOD="chacha20-ietf-poly1305" PASS="your-password" --app <your-app>
 ```
 
 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密方法。
@@ -86,7 +86,7 @@ $ heroku config:set METHOD="chacha20-ietf-poly1305" PASS=123456 --app <app-name>
 ```shell
 $ git clone https://github.com/totravel/shadowsocks-ws.git
 $ cd shadowsocks-ws
-$ git push https://git.heroku.com/<app-name>.git master
+$ git push https://git.heroku.com/<your-app>.git master
 ```
 
 ## 本地配置
@@ -105,12 +105,12 @@ $ npm i
 {
     "verbose": false,
     "dns": "https://cloudflare-dns.com/dns-query",
-    "remote_address": "ws://<app-name>.herokuapp.com/",
+    "remote_address": "ws://<your-app>.herokuapp.com/",
     "remote_port": 80,
     "local_address": "127.0.0.1",
     "local_port": 8787,
-    "timeout": 5,
-    "password": "123456",
+    "timeout": 5000,
+    "password": "your-password",
     "method": "chacha20-ietf-poly1305"
 }
 ```
