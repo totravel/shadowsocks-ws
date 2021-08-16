@@ -5,28 +5,23 @@
 ![License](https://img.shields.io/github/license/totravel/shadowsocks-ws)
 ![GitHub last commit](https://img.shields.io/github/last-commit/totravel/shadowsocks-ws)
 
-shadowsocks-ws 可以隐匿 Shadowsocks 流量，可以部署在 [Heroku](https://www.heroku.com/)。
-
-shadowsocks-ws 既是一个 Shadowsocks 服务器，也是一个 Web 服务器。也就是说，在部署 Shadowsocks 服务器的同时，也架设了一个实实在在的网站。
-
-Shadowsocks 流量基于 WebSocket 协议传送给 Web 服务器，成为网站流量的一部分，再由 Web 服务器转交给 Shadowsocks 服务器，从而达到隐匿 Shadowsocks 流量的目的。
+shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，可以部署在 [Heroku](https://www.heroku.com/)。
 
 ```
-         socks5          tcp         websocket          tcp
-browser <------> client <---> local <-- gfw --> server <---> destination
-                 encrypt                        decrypt
+        socks5            tcp               websocket                tcp
+client <------> ss-local <---> ss-ws-local <-- gfw --> ss-ws-remote <---> target
+                encrypt                                decrypt
 ```
 
-shadowsocks-ws 的本地组件只负责转发 Shadowsocks 流量，须配合现有 [Shadowsocks 客户端](https://github.com/shadowsocks/shadowsocks-windows) 使用。
+shadowsocks-ws 的客户端只负责转发经过加密的流量，须配合现有 [Shadowsocks 客户端](https://github.com/shadowsocks/shadowsocks-windows) 使用。shadowsocks-ws 的客户端和服务器端之间使用 WebSocket 协议进行通信。shadowsocks-ws 的服务器端对外表现为一个 Web 服务器，可以用浏览器访问。
 
 ## 环境要求
 
 - [Node.js](https://nodejs.org/zh-cn/download/current) 12.20.1+
-- [npm](https://nodejs.org/zh-cn/download/current) 7.0.2+
 - [Git](https://gitforwindows.org/)
 - [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
 
-## 依赖包
+## 依赖项
 
 - [colors](https://github.com/Marak/colors.js)
 - [dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
@@ -53,8 +48,6 @@ Password: *****
 Logged in as your@example.com
 ```
 
-如果你还没有 Heroku 账户，请前往 [Heroku 官网](https://www.heroku.com/) 注册。
-
 将你的 SSH 公钥添加到 Heroku：
 
 ```shell
@@ -62,8 +55,6 @@ $ heroku keys:add
 Found an SSH public key at /path/to/id_rsa.pub
 ? Would you like to upload it to Heroku? (Y/n) y
 ```
-
-如果你还没有 SSH 公钥，请阅读 [生成/添加SSH公钥](https://gitee.com/help/articles/4181)。
 
 新建一个 APP：
 
@@ -91,7 +82,7 @@ $ git push https://git.heroku.com/<your-app>.git master
 
 ## 本地配置
 
-克隆代码到本地，安装依赖的软件包：
+克隆代码到本地，安装依赖项：
 
 ```shell
 $ git clone https://github.com/totravel/shadowsocks-ws.git
@@ -125,7 +116,7 @@ $ npm i
 
 ## 开始使用
 
-双击 `setup.cmd` 即可启动本地组件：
+双击 `setup.cmd` 即可启动服务：
 
 ```shell
 loading...
@@ -144,7 +135,7 @@ have a good time!
     - 服务器 > 从剪贴板导入 URL
     - 系统代理 > PAC 模式
 
-此后每次使用只须启动本地组件和 Shadowsocks 客户端即可。
+此后每次使用只须运行 `setup.cmd` 和 Shadowsocks 客户端即可。
 
 ## 许可协议
 
