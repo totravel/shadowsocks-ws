@@ -136,6 +136,11 @@ const noop = () => {};
 
 const inetNtoa = buf => `${buf[0]}.${buf[1]}.${buf[2]}.${buf[3]}`;
 
-const inetNtop = buf => `${buf[0]}${buf[1]}:${buf[2]}${buf[3]}:${buf[4]}${buf[5]}:${buf[6]}${buf[7]}:${buf[8]}${buf[9]}:${buf[10]}${buf[11]}:${buf[12]}${buf[13]}:${buf[14]}${buf[15]}`;
+function inetNtop(buf) {
+    let a = [];
+    for (let i = 0; i < 16; i += 2)
+        a.push(buf.readUInt16BE(i).toString(16));
+    return a.join(':');
+}
 
 module.exports = Relay;
