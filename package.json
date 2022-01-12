@@ -13,12 +13,12 @@
   "license": "MIT",
   "dependencies": {
     "colors": "^1.4.0",
-    "dns-over-http-resolver": "^1.2.3",
-    "futoin-hkdf": "^1.4.2",
-    "ws": "^7.5.3"
+    "dns-over-http-resolver": "^2.0.1",
+    "futoin-hkdf": "^1.4.3",
+    "ws": "^8.4.0"
   },
   "engines": {
-    "node": "v16.5.0",
-    "npm": "v7.19.1"
+    "node": "v16.13.2",
+    "npm": "v8.1.2"
   }
 }

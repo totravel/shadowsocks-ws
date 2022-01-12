@@ -1,2 +1,2 @@
-node local
+node local.mjs
 pause

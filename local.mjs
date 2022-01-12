@@ -1,13 +1,13 @@
 "use strict";
 
-const url = require('url');
-const net = require('net');
-const http = require('http');
-const https = require('https');
-const colors = require('colors');
-const WebSocket = require('ws');
-const DnsOverHttpResolver = require('dns-over-http-resolver');
-const { loadFile, parseJSON } = require('./helper');
+import url from 'url';
+import net from 'net';
+import http from 'http';
+import https from 'https';
+import colors from 'colors';
+import WebSocket, { createWebSocketStream } from 'ws';
+import DnsOverHttpResolver from 'dns-over-http-resolver';
+import { loadFile, parseJSON } from './helper.js';
 
 (async () => {
     console.clear();
@@ -29,7 +29,7 @@ const { loadFile, parseJSON } = require('./helper');
     const options = {
         timeout,
         headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
             'Accept-Encoding': 'gzip, deflate, br'
@@ -41,9 +41,10 @@ const { loadFile, parseJSON } = require('./helper');
         return;
     }
 
-    options.origin = parsed.protocol === 'wss:' ? 'https://' : 'http://';
+    options.origin = parsed.protocol === 'wss:' ? 'https://' : 'http://'; // for ws
     options.origin += hostname;
     options.headers.Host = hostname;
+    options.servername = hostname; // for tls
 
     if (net.isIP(config.lookup)) {
         start(parsed.protocol + '//' + config.lookup, config.local_port, options);
@@ -126,7 +127,7 @@ function attempt(protocol, options) {
             if (verbose) {
                 res.setEncoding('utf8');
                 res.once('data', chunk => {
-                    console.log(chunk.gray);
+                    console.log(res.headers['content-encoding'] ? 'zipped'.gray : chunk.gray);
                     resolve(true);
                 });
             } else {
@@ -135,12 +136,14 @@ function attempt(protocol, options) {
         });
 
         req.on('timeout', () => {
-            if (verbose) console.error('timeout'.red);
-            req.destroy();
+            req.destroy(new Error('timeout')); // see 'error' event
+        });
+
+        req.on('error', err => {
+            if (verbose) console.error(err.message.red);
             resolve(false);
         });
 
-        req.on('error', err => null);
         req.end();
     });
 }
@@ -152,7 +155,7 @@ function start(remote_address, local_port, options) {
         const ws = new WebSocket(remote_address, options);
 
         ws.on('open', () => {
-            ws.s = WebSocket.createWebSocketStream(ws);
+            ws.s = createWebSocketStream(ws);
             ws.s.pipe(c);
             c.pipe(ws.s);
 

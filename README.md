@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/github/license/totravel/shadowsocks-ws)
 ![GitHub last commit](https://img.shields.io/github/last-commit/totravel/shadowsocks-ws)
 
-shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，可以部署在 [Heroku](https://www.heroku.com/)。
+shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，可以部署在 [Heroku](https://www.heroku.com/) 等托管平台。
 
 ```
         socks5            tcp               websocket                tcp
@@ -28,56 +28,36 @@ shadowsocks-ws 的客户端只负责转发经过加密的流量，须配合现�
 - [ws](https://github.com/websockets/ws)
 - [futoin-hkdf](https://github.com/futoin/util-js-hkdf)
 
-## 部署到 Heroku
+## 部署
 
-### 一键部署
-
-点击下面的按钮并根据提示操作。
+### Heroku
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-### 手动部署
+### Railway
 
-打开终端，登录你的 Heroku 账户：
+Create a empty project.
 
-```shell
-$ heroku auth:login -i
-heroku: Enter your login credentials
-Email: your@example.com
-Password: *****
-Logged in as your@example.com
-```
-
-将你的 SSH 公钥添加到 Heroku：
-
-```shell
-$ heroku keys:add
-Found an SSH public key at /path/to/id_rsa.pub
-? Would you like to upload it to Heroku? (Y/n) y
-```
-
-新建一个 APP：
-
-```shell
-$ heroku create
-Creating app... done, ⬢ xxxxx
-https://<your-app>.herokuapp.com/ | https://git.heroku.com/<your-app>.git
-```
-
-设置加密方法、密码：
-
-```shell
-$ heroku config:set METHOD="chacha20-ietf-poly1305" PASS="your-password" --app <your-app>
-```
-
-仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密方法。
-
-克隆代码到本地，再推送到 APP：
+Connect to the project:
 
 ```shell
 $ git clone https://github.com/totravel/shadowsocks-ws.git
 $ cd shadowsocks-ws
-$ git push https://git.heroku.com/<your-app>.git master
+$ railway link [projectId]
+```
+
+Add some variables:
+
+```shell
+$ railway variables set METHOD=aes-256-gcm
+$ railway variables set PASS=secret
+$ railway variables set PORT=80
+```
+
+Create a deployment: 
+
+```shell
+$ railway up
 ```
 
 ## 本地配置
