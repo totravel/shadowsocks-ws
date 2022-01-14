@@ -8,7 +8,7 @@
     },
     "PASS": {
       "description": "Your password.",
-      "generator": "secret"
+      "value": "secret"
     }
   }
 }
