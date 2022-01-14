@@ -73,34 +73,33 @@ class Relay {
         this.buf = this.buf.slice(this.decipher.payloadLength + this.tagSize);
         this.cb = noop;
         this.payloadHandler();
-        this.payload = Buffer.alloc(0);
     }
 
     connect() {
-        var addr, port;
-
         const atyp = this.payload[0];
         if (atyp === 1) {
             // IPv4
-            addr = inetNtoa(this.payload.slice(1, 5));
-            port = this.payload.readUInt16BE(5);
+            this.dstAddr = inetNtoa(this.payload.slice(1, 5));
+            this.dstPort = this.payload.readUInt16BE(5);
         } else if (atyp === 3) {
             // Domain
-            addr = this.payload.slice(2, 2 + this.payload[1]).toString('binary');
-            port = this.payload.readUInt16BE(2 + this.payload[1]);
+            this.dstAddr = this.payload.slice(2, 2 + this.payload[1]).toString('binary');
+            this.dstPort = this.payload.readUInt16BE(2 + this.payload[1]);
         } else if (atyp === 4) {
             // IPv6
-            addr = inetNtop(this.payload.slice(1, 17));
-            port = this.payload.readUInt16BE(17);
+            this.dstAddr = inetNtop(this.payload.slice(1, 17));
+            this.dstPort = this.payload.readUInt16BE(17);
         } else {
             console.error('invalid atyp');
             this.ws.terminate();
             return;
         }
-        console.log('connect to', addr);
 
-        this.dst = net.createConnection(port, addr);
+        this.dst = net.createConnection(this.dstPort, this.dstAddr);
+        console.log('connecting to', this.dstAddr);
+
         this.dst.on('connect', () => {
+            console.log('connected to', this.dstAddr);
             this.cipher = new Crypto(this.method, this.key);
             this.payloadHandler = this.send;
             this.cb = this.getPayloadLength;
@@ -108,10 +107,12 @@ class Relay {
 
             this.dst.setTimeout(this.timeout, () => {
                 this.dst.destroy();
+                console.log('disconnected from', this.dstAddr, 'because of timeout');
             });
         });
 
         this.dst.on('data', (d) => {
+            console.log(d.length, 'bytes from', this.dstAddr);
             this.ws.send(this.cipher.encryptData(d));
         });
 
@@ -126,6 +127,7 @@ class Relay {
     }
 
     send() {
+        console.log(this.payload.length, 'bytes to', this.dstAddr);
         this.dst.write(this.payload);
         this.cb = this.getPayloadLength;
         this.cb();
@@ -134,7 +136,7 @@ class Relay {
 
 const noop = () => {};
 
-const inetNtoa = buf => `${buf[0]}.${buf[1]}.${buf[2]}.${buf[3]}`;
+const inetNtoa = (buf) => `${buf[0]}.${buf[1]}.${buf[2]}.${buf[3]}`;
 
 function inetNtop(buf) {
     let a = [];

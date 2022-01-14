@@ -1,0 +1,17 @@
+proxies:
+  - name: "ss1"
+    type: ss
+    server: 127.0.0.1
+    port: 8787
+    cipher: aes-256-gcm
+    password: "secret"
+
+proxy-groups:
+  - name: Proxy
+    type: select
+    proxies:
+      - ss1
+
+rules:
+  - GEOIP,CN,DIRECT
+  - MATCH,Proxy

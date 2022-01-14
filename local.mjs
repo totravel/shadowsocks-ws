@@ -13,10 +13,10 @@ import { loadFile, parseJSON } from './helper.js';
     console.clear();
     console.log(await loadFile('banner.txt'));
 
-    console.log('loading...');
+    console.log('loading', 'config.json'.gray);
     const config = await parseJSON(await loadFile('config.json'));
     if (config === null) {
-        console.error('failed to load config'.red);
+        console.error('failed to load configuration'.red);
         process.exit(1);
     }
 
@@ -37,21 +37,24 @@ import { loadFile, parseJSON } from './helper.js';
     };
 
     if (net.isIP(hostname)) {
-        start(config.remote_address, config.local_port, options);
+        console.log(hostname);
+        const prefix = parsed.protocol === 'https:' ? 'wss://' : 'ws://';
+        start(prefix + hostname, config.local_port, options);
         return;
     }
 
-    options.origin = parsed.protocol === 'wss:' ? 'https://' : 'http://'; // for ws
-    options.origin += hostname;
+    options.origin = config.remote_address; // for ws
     options.headers.Host = hostname;
     options.servername = hostname; // for tls
 
     if (net.isIP(config.lookup)) {
-        start(parsed.protocol + '//' + config.lookup, config.local_port, options);
+        console.log(`${hostname} [${config.lookup}]`);
+        const prefix = parsed.protocol === 'https:' ? 'wss://' : 'ws://';
+        start(prefix + config.lookup, config.local_port, options);
         return;
     }
 
-    console.log('resolving...', hostname.gray);
+    console.log('resolving', hostname.gray);
     const resolver = new DnsOverHttpResolver();
     resolver.setServers([ config.dns ]);
     const records4 = await resolve4(resolver, hostname);
@@ -67,13 +70,13 @@ import { loadFile, parseJSON } from './helper.js';
     for (const record of records) {
         const atyp = net.isIP(record);
         if (atyp) {
-            console.log('trying...', record.gray);
+            console.log('trying', record.gray);
             options.host = record;
             let t = Date.now();
             const retval = await attempt(parsed.protocol, options);
             t = Date.now() - t;
             if (retval) {
-                console.log('%dms'.gray, t);
+                console.log('used %dms'.gray, t);
                 if (t < min) min = t, addr = record;
                 continue;
             }
@@ -84,9 +87,10 @@ import { loadFile, parseJSON } from './helper.js';
         console.error('something bad happened'.red);
         process.exit(1);
     }
-    console.log('using %s used %dms', addr, min);
 
-    start(parsed.protocol + '//' + addr, config.local_port, options);
+    console.log(`${hostname} [${addr}]`);
+    const prefix = parsed.protocol === 'https:' ? 'wss://' : 'ws://';
+    start(prefix + addr, config.local_port, options);
 })();
 
 function showURL(c) {
@@ -100,7 +104,7 @@ function resolve4(resolver, hostname) {
         try {
             resolve(await resolver.resolve4(hostname));
         } catch (err) {
-            if (verbose) console.error('resolve4'.red, err);
+            if (verbose) console.error(err);
             resolve([]);
         }
     });
@@ -111,7 +115,7 @@ function resolve6(resolver, hostname) {
         try {
             resolve(await resolver.resolve6(hostname));
         } catch (err) {
-            if (verbose) console.error('resolve6'.red, err);
+            if (verbose) console.error(err);
             resolve([]);
         }
     });
@@ -119,14 +123,14 @@ function resolve6(resolver, hostname) {
 
 function attempt(protocol, options) {
     return new Promise((resolve, reject) => {
-        const req = (protocol === 'wss:' ? https : http).request(options, res => {
+        const req = (protocol === 'https:' ? https : http).request(options, (res) => {
             if (res.headers['set-cookie']) {
                 if (verbose) console.log(res.headers['set-cookie']);
                 options.headers.cookie = res.headers['set-cookie'][0].split(';')[0];
             }
             if (verbose) {
                 res.setEncoding('utf8');
-                res.once('data', chunk => {
+                res.once('data', (chunk) => {
                     console.log(res.headers['content-encoding'] ? 'zipped'.gray : chunk.gray);
                     resolve(true);
                 });
@@ -139,8 +143,8 @@ function attempt(protocol, options) {
             req.destroy(new Error('timeout')); // see 'error' event
         });
 
-        req.on('error', err => {
-            if (verbose) console.error(err.message.red);
+        req.on('error', (err) => {
+            if (verbose) console.error(err);
             resolve(false);
         });
 
@@ -151,7 +155,9 @@ function attempt(protocol, options) {
 function start(remote_address, local_port, options) {
     const server = net.createServer();
 
-    server.on('connection', c => {
+    server.on('connection', (c) => {
+        if (verbose) console.log('connected from', c.remoteAddress);
+
         const ws = new WebSocket(remote_address, options);
 
         ws.on('open', () => {
@@ -159,8 +165,8 @@ function start(remote_address, local_port, options) {
             ws.s.pipe(c);
             c.pipe(ws.s);
 
-            ws.s.on('error', err => {
-                if (verbose) console.error('pipe'.red, err);
+            ws.s.on('error', (err) => {
+                if (verbose) console.error(err);
             });
         });
 
@@ -170,14 +176,14 @@ function start(remote_address, local_port, options) {
         });
 
         ws.on('unexpected-response', (req, res) => {
-            console.error('unexpected-response'.red, 'check your server and try again');
+            console.error('received an unexpected response, check your server and try again'.red);
             ws.s?.destroy();
             c.destroyed || c.destroy();
             server.close();
         });
 
-        ws.on('error', err => {
-            if (verbose) console.error('ws'.red, err);
+        ws.on('error', (err) => {
+            if (verbose) console.error(err);
             ws.s?.destroy();
             c.destroyed || c.destroy();
         });
@@ -187,20 +193,20 @@ function start(remote_address, local_port, options) {
             ws.terminate();
         });
 
-        c.on('error', err => {
-            if (verbose) console.error('connection'.red, err);
+        c.on('error', (err) => {
+            if (verbose) console.error(err);
             ws.s?.destroy();
             ws.terminate();
         });
     });
 
-    server.on('error', err => {
-        console.error('server'.red, err);
+    server.on('error', (err) => {
+        console.error(err);
         process.exit(1);
     });
 
     server.listen(local_port, () => {
-        console.log('server has started');
+        console.log(`listening at 0.0.0.0:${local_port}`);
         console.log('have a good time!'.brightGreen);
     });
 }

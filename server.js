@@ -22,10 +22,10 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws, req) => {
-    console.log('connection from', req.socket.remoteAddress);
+    console.log('connected from', req.socket.remoteAddress);
     new Relay(ws, METHOD, KEY, TIMEOUT);
 });
 
 server.listen(PORT, () => {
-    console.log('server running at http://localhost:%d/', PORT);
+    console.log(`server listening at http://0.0.0.0:${PORT}/`);
 });

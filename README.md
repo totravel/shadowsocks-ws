@@ -1,4 +1,3 @@
-
 # Shadowsocks over WebSocket
 
 [![Build Status](https://travis-ci.org/totravel/shadowsocks-ws.svg?branch=master)](https://travis-ci.org/totravel/shadowsocks-ws)
@@ -13,15 +12,13 @@ client <------> ss-local <---> ss-ws-local <-- gfw --> ss-ws-remote <---> target
                 encrypt                                decrypt
 ```
 
-shadowsocks-ws 的客户端只负责转发经过加密的流量，须配合现有 [Shadowsocks 客户端](https://github.com/shadowsocks/shadowsocks-windows) 使用。shadowsocks-ws 的客户端和服务器端之间使用 WebSocket 协议进行通信。shadowsocks-ws 的服务器端对外表现为一个 Web 服务器，可以用浏览器访问。
+shadowsocks-ws 的客户端只负责转发经过加密的流量，须配合 [Shadowsocks for Windows](https://github.com/shadowsocks/shadowsocks-windows) 等现有 Shadowsocks 客户端使用。shadowsocks-ws 的客户端和服务器端之间使用 WebSocket 协议进行通信。shadowsocks-ws 的服务器端对外表现为一个 Web 服务器，可以用浏览器访问。
 
 ## 环境要求
 
-- [Node.js](https://nodejs.org/zh-cn/download/current) 12.20.1+
-- [Git](https://gitforwindows.org/)
-- [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli)
+- [Node.js](https://nodejs.org/zh-cn/download/) 16.13.2+
 
-## 依赖项
+## 依赖
 
 - [colors](https://github.com/Marak/colors.js)
 - [dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
@@ -36,33 +33,11 @@ shadowsocks-ws 的客户端只负责转发经过加密的流量，须配合现�
 
 ### Railway
 
-Create a empty project.
-
-Connect to the project:
-
-```shell
-$ git clone https://github.com/totravel/shadowsocks-ws.git
-$ cd shadowsocks-ws
-$ railway link [projectId]
-```
-
-Add some variables:
-
-```shell
-$ railway variables set METHOD=aes-256-gcm
-$ railway variables set PASS=secret
-$ railway variables set PORT=80
-```
-
-Create a deployment: 
-
-```shell
-$ railway up
-```
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Ftotravel%2Fshadowsocks-ws&envs=METHOD%2CPASS%2CPORT&METHODDesc=Only+%27chacha20-ietf-poly1305%27+and+%27aes-256-gcm%27+are+supported.&PASSDesc=Your+password.&PORTDesc=1-65535&METHODDefault=chacha20-ietf-poly1305&PASSDefault=secret&PORTDefault=80&referralCode=Vd85VV)
 
 ## 本地配置
 
-克隆代码到本地，安装依赖项：
+克隆代码到本地，安装依赖：
 
 ```shell
 $ git clone https://github.com/totravel/shadowsocks-ws.git
@@ -76,17 +51,15 @@ $ npm i
 {
     "verbose": false,
     "dns": "https://cloudflare-dns.com/dns-query",
-    "remote_address": "ws://<your-app>.herokuapp.com/",
+    "remote_address": "https://*.example.com/",
     "remote_port": 80,
     "local_address": "127.0.0.1",
     "local_port": 8787,
     "timeout": 5000,
-    "password": "your-password",
-    "method": "chacha20-ietf-poly1305"
+    "password": "secret",
+    "method": "aes-256-gcm"
 }
 ```
-
-`remote_address` 字段的开头也可修改为 `wss://`。
 
 `dns` 字段一般无须修改。下列取值供参考：
 
@@ -94,28 +67,55 @@ $ npm i
 - AliDNS `https://dns.alidns.com/resolve`
 - 360DNS `https://doh.360.cn/query`
 
-## 开始使用
-
-双击 `setup.cmd` 即可启动服务：
+双击 `setup.cmd` 以启动 shadowsocks-ws 客户端：
 
 ```shell
-loading...
+loading ...
 ss://...
-resolving...
-trying...
-using ... used ...
-server has started
+resolving ...
+trying ...
+used ...
+listening at 0.0.0.0:8787
 have a good time!
 ```
 
-首次使用，须完成下列操作：
+### Shadowsocks for Windows
 
-- 复制开头的 `ss://...`
-- 在托盘区找到 Shadowsocks 客户端的图标 > 右击
+打开 [Shadowsocks for Windows](https://github.com/shadowsocks/shadowsocks-windows)：
+
+- 复制上一步中 shadowsocks-ws 客户端输出的 URL `ss://...`
+- 在托盘区找到 Shadowsocks for Windows 的图标 > 右击
     - 服务器 > 从剪贴板导入 URL
     - 系统代理 > PAC 模式
 
-此后每次使用只须运行 `setup.cmd` 和 Shadowsocks 客户端即可。
+### Clash for Windows
+
+将配置文件 `clash.yaml.example` 重命名为 `clash.yaml` 并修改 `cipher` 和 `password` 两个字段。
+
+```yaml
+proxies:
+  - name: "ss1"
+    type: ss
+    server: 127.0.0.1
+    port: 8787
+    cipher: aes-256-gcm
+    password: "secret"
+
+proxy-groups:
+  - name: Proxy
+    type: select
+    proxies:
+      - ss1
+
+rules:
+  - GEOIP,CN,DIRECT
+  - MATCH,Proxy
+```
+
+打开 [Clash for Windows](https://github.com/ender-zhao/Clash-for-Windows_Chinese)：
+
+- 配置 > 导入配置文件 `config.yaml`
+- 主页 > 打开「系统代理」开关
 
 ## 许可协议
 
