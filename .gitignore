@@ -1,4 +1,5 @@
 /node_modules
 *.json
 *.yaml
+main.js
 package-lock.json

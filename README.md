@@ -12,7 +12,7 @@ client <------> ss-local <---> ss-ws-local <-- gfw --> ss-ws-remote <---> target
                 encrypt                                decrypt
 ```
 
-shadowsocks-ws 的客户端只负责转发经过加密的流量，须配合 [Shadowsocks for Windows](https://github.com/shadowsocks/shadowsocks-windows) 等现有 Shadowsocks 客户端使用。shadowsocks-ws 的客户端和服务器端之间使用 WebSocket 协议进行通信。shadowsocks-ws 的服务器端对外表现为一个 Web 服务器，可以用浏览器访问。
+shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadowsocks for Windows](https://github.com/shadowsocks/shadowsocks-windows) 等现有 Shadowsocks 客户端使用。shadowsocks-ws 客户端和服务器端之间使用 WebSocket 协议进行通信。shadowsocks-ws 服务器对外表现为一个 Web 服务器，可以用浏览器访问。
 
 ## 环境要求
 
@@ -20,6 +20,7 @@ shadowsocks-ws 的客户端只负责转发经过加密的流量，须配合 [Sha
 
 ## 依赖
 
+- [qrcode](https://github.com/soldair/node-qrcode)
 - [colors](https://github.com/Marak/colors.js)
 - [dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
 - [ws](https://github.com/websockets/ws)
@@ -67,23 +68,22 @@ $ npm i
 - AliDNS `https://dns.alidns.com/resolve`
 - 360DNS `https://doh.360.cn/query`
 
-双击 `setup.cmd` 以启动 shadowsocks-ws 客户端：
+启动 shadowsocks-ws 客户端：
 
 ```shell
-loading ...
+$ node local.mjs
 ss://...
 resolving ...
 trying ...
-used ...
-listening at 0.0.0.0:8787
-have a good time!
+remote server running on host ...
+local server listening on 0.0.0.0 port 8787
 ```
 
 ### Shadowsocks for Windows
 
 打开 [Shadowsocks for Windows](https://github.com/shadowsocks/shadowsocks-windows)：
 
-- 复制上一步中 shadowsocks-ws 客户端输出的 URL `ss://...`
+- 复制 shadowsocks-ws 客户端输出的 `ss://...`
 - 在托盘区找到 Shadowsocks for Windows 的图标 > 右击
     - 服务器 > 从剪贴板导入 URL
     - 系统代理 > PAC 模式
@@ -114,8 +114,9 @@ rules:
 
 打开 [Clash for Windows](https://github.com/ender-zhao/Clash-for-Windows_Chinese)：
 
-- 配置 > 导入配置文件 `config.yaml`
+- 配置 > 导入上述配置文件
 - 主页 > 打开「系统代理」开关
+- 代理 > 直连
 
 ## 许可协议
 

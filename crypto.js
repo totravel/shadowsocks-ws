@@ -1,8 +1,7 @@
-"use strict";
 
-const crypto = require('crypto');
-const { keySize, saltSize, AEAD } = require('./aead');
-const hkdf = require('futoin-hkdf');
+import crypto from 'crypto';
+import hkdf from 'futoin-hkdf';
+import { keySize, saltSize, AEAD } from './aead.js';
 
 class Crypto extends AEAD {
 
@@ -60,4 +59,4 @@ function EVP_BytesToKey(data, keyLen, ivLen = 0) {
     return { key, iv };
 }
 
-module.exports = { Crypto, EVP_BytesToKey };
+export { Crypto, EVP_BytesToKey };

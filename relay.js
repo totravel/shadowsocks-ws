@@ -1,8 +1,7 @@
-"use strict";
 
-const net = require('net');
-const { saltSize, tagSize } = require('./aead');
-const { Crypto } = require('./crypto');
+import net from 'net';
+import { saltSize, tagSize } from './aead.js';
+import { Crypto } from './crypto.js';
 
 class Relay {
 
@@ -96,10 +95,10 @@ class Relay {
         }
 
         this.dst = net.createConnection(this.dstPort, this.dstAddr);
-        console.log('connecting to', this.dstAddr);
+        console.debug('connecting to', this.dstAddr);
 
         this.dst.on('connect', () => {
-            console.log('connected to', this.dstAddr);
+            console.debug('connected to', this.dstAddr);
             this.cipher = new Crypto(this.method, this.key);
             this.payloadHandler = this.send;
             this.cb = this.getPayloadLength;
@@ -107,12 +106,12 @@ class Relay {
 
             this.dst.setTimeout(this.timeout, () => {
                 this.dst.destroy();
-                console.log('disconnected from', this.dstAddr, 'because of timeout');
+                console.debug('disconnected from', this.dstAddr, 'because of timeout');
             });
         });
 
         this.dst.on('data', (d) => {
-            console.log(d.length, 'bytes from', this.dstAddr);
+            console.debug(d.length, 'bytes from', this.dstAddr);
             this.ws.send(this.cipher.encryptData(d));
         });
 
@@ -127,7 +126,7 @@ class Relay {
     }
 
     send() {
-        console.log(this.payload.length, 'bytes to', this.dstAddr);
+        console.debug(this.payload.length, 'bytes to', this.dstAddr);
         this.dst.write(this.payload);
         this.cb = this.getPayloadLength;
         this.cb();
@@ -145,4 +144,4 @@ function inetNtop(buf) {
     return a.join(':');
 }
 
-module.exports = Relay;
+export default Relay;

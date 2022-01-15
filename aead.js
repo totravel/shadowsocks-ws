@@ -1,6 +1,5 @@
-"use strict";
 
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 const keySize = {
     'aes-256-gcm': 32,
@@ -63,4 +62,4 @@ class AEAD {
     }
 }
 
-module.exports = { keySize, saltSize, tagSize, AEAD };
+export { keySize, saltSize, tagSize, AEAD };

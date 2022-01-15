@@ -1,11 +1,10 @@
-"use strict";
 
-const fs = require('fs');
-const http = require('http');
-const WebSocket = require('ws');
-const Relay = require('./relay');
-const { keySize } = require('./aead');
-const { EVP_BytesToKey } = require('./crypto');
+import fs from 'fs';
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import Relay from './relay.js';
+import { keySize } from './aead.js';
+import { EVP_BytesToKey } from './crypto.js';
 
 const PORT    = process.env.PORT    || 80;
 const PASS    = process.env.PASS    || 'secret';
@@ -19,13 +18,13 @@ const server = http.createServer((req, res) => {
     fs.createReadStream('index.html').pipe(res);
 });
 
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws, req) => {
-    console.log('connected from', req.socket.remoteAddress);
+    console.debug('connected from', req.socket.remoteAddress);
     new Relay(ws, METHOD, KEY, TIMEOUT);
 });
 
 server.listen(PORT, () => {
-    console.log(`server listening at http://0.0.0.0:${PORT}/`);
+    console.info(`server running at http://0.0.0.0:${PORT}/`);
 });

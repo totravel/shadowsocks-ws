@@ -1,33 +1,38 @@
-"use strict";
 
 import url from 'url';
 import net from 'net';
 import http from 'http';
 import https from 'https';
 import colors from 'colors';
+import QRCode from 'qrcode';
 import WebSocket, { createWebSocketStream } from 'ws';
 import DnsOverHttpResolver from 'dns-over-http-resolver';
-import { loadFile, parseJSON } from './helper.js';
+import { loadFile, parseJSON } from './helper.mjs';
+
+const CONFIG_PATH = './config.json';
 
 (async () => {
     console.clear();
-    console.log(await loadFile('banner.txt'));
+    console.info(await loadFile('banner.txt'));
 
-    console.log('loading', 'config.json'.gray);
-    const config = await parseJSON(await loadFile('config.json'));
+    const config = await parseJSON(await loadFile(CONFIG_PATH));
     if (config === null) {
-        console.error('failed to load configuration'.red);
+        console.error(`failed to load '${CONFIG_PATH}' config`.red);
         process.exit(1);
     }
 
     global.verbose = config.verbose;
-    showURL(config);
+    const u = getURL(config);
+    console.info(await QRCode.toString(u, {type: 'terminal', errorCorrectionLevel: 'L'}));
+    console.info(u);
 
     const timeout = config.timeout;
     const parsed = url.parse(config.remote_address);
     const hostname = parsed.hostname;
+    const protocol = parsed.protocol;
     const options = {
         timeout,
+        origin: config.remote_address, // for ws
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -37,50 +42,47 @@ import { loadFile, parseJSON } from './helper.js';
     };
 
     if (net.isIP(hostname)) {
-        console.log(hostname);
-        const prefix = parsed.protocol === 'https:' ? 'wss://' : 'ws://';
-        start(prefix + hostname, config.local_port, options);
+        console.info(`remote server running on host '${hostname}'`);
+        start(protocol, hostname, config.local_port, options);
         return;
     }
 
-    options.origin = config.remote_address; // for ws
     options.headers.Host = hostname;
     options.servername = hostname; // for tls
 
     if (net.isIP(config.lookup)) {
-        console.log(`${hostname} [${config.lookup}]`);
-        const prefix = parsed.protocol === 'https:' ? 'wss://' : 'ws://';
-        start(prefix + config.lookup, config.local_port, options);
+        console.info(`remote server running on host '${hostname}' (${config.lookup})`);
+        start(protocol, config.lookup, config.local_port, options);
         return;
     }
 
-    console.log('resolving', hostname.gray);
+    console.info(`resolving ${hostname}...`);
     const resolver = new DnsOverHttpResolver();
     resolver.setServers([ config.dns ]);
     const records4 = await resolve4(resolver, hostname);
     const records6 = await resolve6(resolver, hostname);
     const records = records4.concat(records6);
     if (records.length === 0) {
-        console.error('failed to resolve host'.red);
+        console.error(`failed to resolve host '${hostname}'`.red);
         process.exit(1);
     }
-    if (verbose) console.log(records);
+    if (verbose) console.debug(records);
 
     let min = Infinity, addr = null;
     for (const record of records) {
         const atyp = net.isIP(record);
         if (atyp) {
-            console.log('trying', record.gray);
+            console.info(`trying ${record}...`);
             options.host = record;
             let t = Date.now();
-            const retval = await attempt(parsed.protocol, options);
+            const retval = await attempt(protocol, options);
             t = Date.now() - t;
             if (retval) {
-                console.log('used %dms'.gray, t);
+                console.info(`used ${t}ms`.gray);
                 if (t < min) min = t, addr = record;
                 continue;
             }
-            console.log('failed'.gray);
+            console.info('failed'.gray);
         }
     }
     if (addr === null) {
@@ -88,15 +90,13 @@ import { loadFile, parseJSON } from './helper.js';
         process.exit(1);
     }
 
-    console.log(`${hostname} [${addr}]`);
-    const prefix = parsed.protocol === 'https:' ? 'wss://' : 'ws://';
-    start(prefix + addr, config.local_port, options);
+    console.info(`remote server running on host '${hostname}' (${addr})`);
+    start(protocol, addr, config.local_port, options);
 })();
 
-function showURL(c) {
+function getURL(c) {
     const userinfo = Buffer.from(c.method + ':' + c.password).toString('base64');
-    const url = 'ss://' + userinfo + '@' + c.local_address + ':' + c.local_port;
-    console.log(url.gray);
+    return'ss://' + userinfo + '@' + c.local_address + ':' + c.local_port;
 }
 
 function resolve4(resolver, hostname) {
@@ -125,13 +125,13 @@ function attempt(protocol, options) {
     return new Promise((resolve, reject) => {
         const req = (protocol === 'https:' ? https : http).request(options, (res) => {
             if (res.headers['set-cookie']) {
-                if (verbose) console.log(res.headers['set-cookie']);
+                if (verbose) console.debug(res.headers['set-cookie']);
                 options.headers.cookie = res.headers['set-cookie'][0].split(';')[0];
             }
             if (verbose) {
                 res.setEncoding('utf8');
                 res.once('data', (chunk) => {
-                    console.log(res.headers['content-encoding'] ? 'zipped'.gray : chunk.gray);
+                    console.debug(res.headers['content-encoding'] ? 'zipped'.gray : chunk.gray);
                     resolve(true);
                 });
             } else {
@@ -152,11 +152,13 @@ function attempt(protocol, options) {
     });
 }
 
-function start(remote_address, local_port, options) {
-    const server = net.createServer();
+function start(protocol, remote_host, local_port, options) {
+    const prefix = protocol === 'https:' ? 'wss://' : 'ws://';
+    const remote_address = prefix + remote_host;
 
+    const server = net.createServer();
     server.on('connection', (c) => {
-        if (verbose) console.log('connected from', c.remoteAddress);
+        if (verbose) console.debug('connected from', c.remoteAddress);
 
         const ws = new WebSocket(remote_address, options);
 
@@ -206,7 +208,6 @@ function start(remote_address, local_port, options) {
     });
 
     server.listen(local_port, () => {
-        console.log(`listening at 0.0.0.0:${local_port}`);
-        console.log('have a good time!'.brightGreen);
+        console.info(`local server listening on 0.0.0.0 port ${local_port}`);
     });
 }
