@@ -23,7 +23,7 @@ const CONFIG_PATH = './config.json';
 
     global.verbose = config.verbose;
     const u = getURL(config);
-    console.info(await QRCode.toString(u, {type: 'terminal', errorCorrectionLevel: 'L'}));
+    console.info(await QRCode.toString(u, {type: 'terminal', errorCorrectionLevel: 'L', small: true}));
     console.info(u);
 
     const timeout = config.timeout;

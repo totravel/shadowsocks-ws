@@ -72,6 +72,7 @@ class Relay {
         this.buf = this.buf.slice(this.decipher.payloadLength + this.tagSize);
         this.cb = noop;
         this.payloadHandler();
+        this.payload = null;
     }
 
     connect() {

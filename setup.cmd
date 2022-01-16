@@ -1,2 +1,1 @@
-node local.mjs
-pause
+wt node --no-warnings local.mjs
