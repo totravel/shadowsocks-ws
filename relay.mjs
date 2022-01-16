@@ -1,7 +1,7 @@
 
 import net from 'net';
-import { saltSize, tagSize } from './aead.js';
-import { Crypto } from './crypto.js';
+import { saltSize, tagSize } from './aead.mjs';
+import { Crypto } from './crypto.mjs';
 
 class Relay {
 

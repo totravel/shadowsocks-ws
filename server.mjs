@@ -2,9 +2,9 @@
 import fs from 'fs';
 import http from 'http';
 import { WebSocketServer } from 'ws';
-import Relay from './relay.js';
-import { keySize } from './aead.js';
-import { EVP_BytesToKey } from './crypto.js';
+import Relay from './relay.mjs';
+import { keySize } from './aead.mjs';
+import { EVP_BytesToKey } from './crypto.mjs';
 
 const PORT    = process.env.PORT    || 80;
 const PASS    = process.env.PASS    || 'secret';

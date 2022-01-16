@@ -4,7 +4,7 @@
   "description": "Shadowsocks over WebSocket",
   "scripts": {
     "build": "webpack",
-    "start": "node main.js"
+    "start": "node server.min.js"
   },
   "repository": {
     "type": "git",

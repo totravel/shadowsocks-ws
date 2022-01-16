@@ -5,9 +5,9 @@ const TerserPlugin = require("terser-webpack-plugin")
 module.exports = {
   mode: 'production',
   target: 'node',
-  entry: './server.js',
+  entry: './server.mjs',
   output: {
-    filename: 'main.js',
+    filename: 'server.min.js',
     path: __dirname
   },
   optimization: {

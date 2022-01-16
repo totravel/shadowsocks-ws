@@ -1,7 +1,7 @@
 
 import crypto from 'crypto';
 import hkdf from 'futoin-hkdf';
-import { keySize, saltSize, AEAD } from './aead.js';
+import { keySize, saltSize, AEAD } from './aead.mjs';
 
 class Crypto extends AEAD {
 
