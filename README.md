@@ -83,10 +83,10 @@ local server listening on 0.0.0.0 port 8787
 
 打开 [Shadowsocks for Windows](https://github.com/shadowsocks/shadowsocks-windows)：
 
-- 复制 shadowsocks-ws 客户端输出的 `ss://...`
-- 在托盘区找到 Shadowsocks for Windows 的图标 > 右击
-    - 服务器 > 从剪贴板导入 URL
-    - 系统代理 > PAC 模式
+1. 复制 shadowsocks-ws 客户端输出的 `ss://...`
+1. 在托盘区找到 Shadowsocks for Windows 的图标 > 右击
+    1. 服务器 > 从剪贴板导入 URL
+    1. 系统代理 > PAC 模式
 
 ### Clash for Windows
 
@@ -114,9 +114,17 @@ rules:
 
 打开 [Clash for Windows](https://github.com/ender-zhao/Clash-for-Windows_Chinese)：
 
-- 配置 > 导入上述配置文件
-- 主页 > 打开「系统代理」开关
-- 代理 > 直连
+1. 配置 > 导入上述配置文件
+1. 主页 > 打开「系统代理」开关
+1. 代理 > 直连
+
+### SagerNet for Android
+
+将手机和电脑连接至同一网络，打开 [SagerNet for Android](https://github.com/SagerNet/SagerNet)：
+
+1. 右上角 > 添加服务器配置 > 扫描二维码
+1. 修改服务器配置 > 将「服务器」字段由 `127.0.0.1` 修改为电脑的 IP 地址
+1. 右下角 > 连接
 
 ## 许可协议
 
