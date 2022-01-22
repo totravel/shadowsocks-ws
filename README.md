@@ -20,11 +20,10 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ## 依赖
 
-- [qrcode](https://github.com/soldair/node-qrcode)
 - [colors](https://github.com/Marak/colors.js)
 - [dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
+- [qrcode](https://github.com/soldair/node-qrcode)
 - [ws](https://github.com/websockets/ws)
-- [futoin-hkdf](https://github.com/futoin/util-js-hkdf)
 
 ## 部署
 

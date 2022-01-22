@@ -3,7 +3,8 @@
   "version": "5.0.0",
   "description": "Shadowsocks over WebSocket",
   "scripts": {
-    "build": "webpack",
+    "dev": "rollup -c && node --enable-source-maps server.min.js",
+    "build": "rollup -c",
     "start": "node server.min.js"
   },
   "repository": {
@@ -15,8 +16,11 @@
   "dependencies": {
     "colors": "^1.4.0",
     "dns-over-http-resolver": "^2.0.1",
-    "futoin-hkdf": "^1.4.3",
     "qrcode": "^1.5.0",
+    "rollup": "^2.65.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "terser": "^5.10.0",
+    "undici": "^4.12.2",
     "ws": "^8.4.0"
   },
   "engines": {
@@ -24,7 +28,10 @@
     "npm": "v8.1.2"
   },
   "devDependencies": {
-    "webpack": "^5.66.0",
-    "webpack-cli": "^4.9.1"
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1"
   }
 }

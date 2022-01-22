@@ -1,11 +1,11 @@
 {
-    "verbose": false,
-    "dns": "https://cloudflare-dns.com/dns-query",
-    "remote_address": "https://*.example.com/",
-    "remote_port": 80,
-    "local_address": "127.0.0.1",
-    "local_port": 8787,
-    "timeout": 5000,
-    "password": "secret",
-    "method": "aes-256-gcm"
+  "verbose": false,
+  "dns": "https://cloudflare-dns.com/dns-query",
+  "remote_address": "https://*.example.com/",
+  "remote_port": 80,
+  "local_address": "127.0.0.1",
+  "local_port": 8787,
+  "timeout": 5000,
+  "password": "secret",
+  "method": "aes-256-gcm"
 }
