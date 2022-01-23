@@ -1,10 +1,13 @@
 
 import { createReadStream } from 'fs'
-import http from 'http'
+import { createServer } from 'http'
 import { hkdfSync, randomBytes } from 'crypto'
 import WebSocket, { WebSocketServer } from 'ws'
 import { keySize, saltSize, tagSize, AEAD } from './aead.mjs'
 import { EVP_BytesToKey, createAndConnect, inetNtoa, inetNtop } from './helper.mjs'
+
+import colors from 'colors'
+const { red, gray, green, magenta, blue } = colors
 
 const METHOD = process.env.METHOD === 'aes-256-gcm' ? 'aes-256-gcm' : 'chacha20-poly1305'
 const PASS   = process.env.PASS    || 'secret'
@@ -14,11 +17,19 @@ const KEY_SIZE  = keySize[METHOD]
 const SALT_SIZE = saltSize[METHOD]
 const TAG_SIZE  = tagSize[METHOD]
 
+const PAYLOAD_LENGTH_SIZE = 2
+const PAYLOAD_LENGTH_CHUNK_SIZE = 2 + TAG_SIZE
+
 const KEY = EVP_BytesToKey(PASS, KEY_SIZE).key
+
+const CLOSED  = 'closed'
+const OPENING = 'opening'
+const OPEN    = 'open'
+const QUEUE   = 'queue'
 
 const HTML = './index.html'
 
-const server = http.createServer((req, res) => {
+const server = createServer((req, res) => {
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/html')
   createReadStream(HTML).pipe(res)
@@ -26,80 +37,103 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocketServer({ server })
 
-const UNCONNECTED = 0
-const CONNECTING  = 1
-const CONNECTED   = 2
-
-function dump (client, target, messages) {
-  return `connections=${connections} messages=${messages} client.addr=${client.addr} client.port=${client.port} target.addr=${target.addr} target.port=${target.port} target.readyState=${target.readyState}`
+function dump (message, clientAddr, targetAddr, targetReadyState) {
+  return red(`${message}:`) +
+         gray(' clientAddr=') + blue(clientAddr) +
+         gray(' targetAddr=') + magenta(targetAddr) +
+         gray(' targetReadyState=') + green(targetReadyState)
 }
 
-let connections = 0
-
 wss.on('connection', (ws, req) => {
-  connections++
-  console.debug(`connected from client: ${req.socket.remoteAddress}`)
 
-  const client = {
-    addr: req.socket.remoteAddress,
-    port: req.socket.remotePort,
-    decipher: null,
-    cipher: null,
-    rx: [],
-    tx: []
-  }
-  const target = {
-    addr: null,
-    port: null,
-    sock: null,
-    readyState: UNCONNECTED
-  }
+  let clientSocket = req.socket
+  let clientAddr = `${req.socket.remoteAddress}:${req.socket.remotePort}`
 
-  let messages = 0
+  let decipher = null
+  let cipher = null
+
+  let rx = []
+  let tx = []
+
+  let decryptedPayloadLength = null
+  let decryptedPayload = []
+
+  let targetReadyState = CLOSED
+  let targetAddr = null
+  let targetSocket = null
+
+  console.debug(`client connected: ${clientAddr}`)
 
   ws.on('message', async (data) => {
-    messages++
     console.debug(`${data.length} bytes received from client`)
 
-    if (client.decipher === null) {
+    if (decipher === null) {
       const salt = data.slice(0, SALT_SIZE)
       data = data.slice(SALT_SIZE)
       const dk = hkdfSync('sha1', KEY, salt, 'ss-subkey', KEY_SIZE)
-      client.decipher = new AEAD(METHOD, dk)
+      decipher = new AEAD(METHOD, dk)
       console.debug('decipher initialized')
     }
 
-    if (target.readyState === CONNECTING) {
-      client.rx.push(data)
-      console.debug(`${data.length} bytes buffered`)
+    if (targetReadyState === OPENING) {
+      rx.push(data)
       return
     }
 
+    if (rx.length > 0) {
+      rx.push(data)
+      data = Buffer.concat(rx)
+      rx = []
+    }
+
     while (data.length > 0) {
-      const encryptedPayloadLength = data.slice(0, 2)
-      const lengthTag = data.slice(2, 2 + TAG_SIZE)
-      data = data.slice(2 + TAG_SIZE)
-      let payloadLength = client.decipher.decrypt(encryptedPayloadLength, lengthTag)
+
+      let payloadLength = decryptedPayloadLength
       if (payloadLength === null) {
-        console.error(`invalid password or cipher: ${dump(client, target, messages)}`)
-        ws.terminate() // 'close' event will be called
+
+        if (data.length < PAYLOAD_LENGTH_CHUNK_SIZE) {
+          rx.push(data)
+          console.debug('no data')
+          return
+        }
+
+        const encryptedPayloadLength = data.slice(0, PAYLOAD_LENGTH_SIZE)
+        const lengthTag = data.slice(PAYLOAD_LENGTH_SIZE, PAYLOAD_LENGTH_CHUNK_SIZE)
+        data = data.slice(PAYLOAD_LENGTH_CHUNK_SIZE)
+        payloadLength = decipher.decrypt(encryptedPayloadLength, lengthTag)
+
+        if (payloadLength === null) {
+          console.error(dump('invalid password or cipher', clientAddr, targetAddr, targetReadyState))
+          ws.terminate() // 'close' event will be called
+          return
+        }
+
+        payloadLength = payloadLength.readUInt16BE(0)
+        console.debug(`payload length decrypted: ${payloadLength}`)
+      } else {
+        decryptedPayloadLength = null
+        console.debug('payload length already decrypted')
+      }
+
+      if (data.length < (payloadLength + TAG_SIZE)) {
+        rx.push(data)
+        decryptedPayloadLength = payloadLength
+        console.debug('payload length decrypted, but no more data')
         return
       }
-      payloadLength = payloadLength.readUInt16BE(0)
-      console.debug(`encrypted payload length decrypted: ${payloadLength}`)
 
       const encryptedPayload = data.slice(0, payloadLength)
       const payloadTag = data.slice(payloadLength, payloadLength + TAG_SIZE)
       data = data.slice(payloadLength + TAG_SIZE)
-      const payload = client.decipher.decrypt(encryptedPayload, payloadTag)
-      console.debug('encrypted payload decrypted')
+      const payload = decipher.decrypt(encryptedPayload, payloadTag)
+      console.debug('payload decrypted')
 
-      if (target.readyState === CONNECTED) {
-        target.sock.write(payload)
-        console.debug(`${payload.length} bytes sent to target`)
+      if (targetReadyState === OPEN) {
+        decryptedPayload.push(payload)
         continue
       }
-      target.readyState = CONNECTING
+      targetReadyState = OPENING
+      ws.pause()
 
       const atyp = payload[0]
       let addr, port
@@ -113,67 +147,87 @@ wss.on('connection', (ws, req) => {
         addr = inetNtop(payload.slice(1, 17)) // IPv6
         port = payload.readUInt16BE(17)
       } else {
-        console.error(`invalid atyp: ${dump(client, target, messages)}`)
+        console.error(dump('invalid atyp', clientAddr, targetAddr, targetReadyState))
         ws.terminate()
         return
       }
-      target.addr = addr
-      target.port = port
+      targetAddr = `${addr}:${port}`
       console.debug(`target address parsed: ${addr}:${port}`)
 
       try {
-        target.sock = await createAndConnect(port, addr)
+        targetSocket = await createAndConnect(port, addr)
       } catch (err) {
-        console.error(`${err.message}: ${dump(client, target, messages)}`)
+        console.error(dump(err.message, clientAddr, targetAddr, targetReadyState))
         ws.terminate()
         return
       }
-      target.readyState = CONNECTED
-      console.debug('connected to target')
-      if (client.rx.length > 0) {
-        client.rx.unshift(data)
-        data = Buffer.concat(client.rx)
-        client.rx = []
-        console.debug('buffered data consumed')
+      console.debug('target connected')
+      targetReadyState = OPEN
+      ws.resume()
+      if (rx.length > 0) {
+        rx.unshift(data)
+        data = Buffer.concat(rx)
+        rx = []
       }
 
       const salt = randomBytes(SALT_SIZE)
-      client.tx.push(salt)
+      tx.push(salt)
       const dk = hkdfSync('sha1', KEY, salt, 'ss-subkey', KEY_SIZE)
-      client.cipher = new AEAD(METHOD, dk)
+      cipher = new AEAD(METHOD, dk)
       console.debug('cipher initialized')
 
-      target.sock.on('data', (data) => {
-        console.debug(`${data.length} bytes sent from target to client`)
+      targetSocket.on('data', (data) => {
+        console.debug(`${data.length} bytes sent to client`)
+
         while (data.length > 0) {
           const payload = data.slice(0, 0x3fff)
           const payloadLength = Buffer.alloc(2)
           payloadLength.writeUInt16BE(payload.length)
-          client.tx.push(client.cipher.encrypt(payloadLength))
-          client.tx.push(client.cipher.encrypt(payload))
+          tx.push(cipher.encrypt(payloadLength))
+          tx.push(cipher.encrypt(payload))
           data = data.slice(0x3fff)
         }
-        ws.send(Buffer.concat(client.tx))
-        client.tx = []
+        data = null
+
+        // download
+        targetSocket.pause()
+        ws.send(Buffer.concat(tx), () => {
+          targetSocket.resume()
+        })
+        tx = []
       })
 
-      target.sock.on('error', (err) => {
-        console.error(`${err.message}: ${dump(client, target, messages)}`)
-      }) // 'close' event will be called
+      targetSocket.on('error', (err) => { // 'close' event will be called
+        console.error(dump(err.message, clientAddr, targetAddr, targetReadyState))
+      })
 
-      target.sock.on('end', () => target.sock.end())
+      targetSocket.on('end', () => targetSocket.end())
 
-      target.sock.on('close', () => {
-        console.debug('disconnected from target')
+      targetSocket.on('close', () => {
+        console.debug('target disconnected')
         if (ws.readyState === WebSocket.OPEN) ws.terminate()
       })
     }
+    data = null
+
+    if (targetReadyState !== OPEN || ws.isPaused) return
+    write()
   })
 
+  // upload
+  function write () {
+    while (decryptedPayload.length !== 0) {
+      if (targetSocket.write(decryptedPayload.shift()) === true) continue
+      ws.pause()
+      targetSocket.once('drain', write)
+      return
+    }
+    if (ws.isPaused) ws.resume()
+  }
+
   ws.on('close', () => {
-    connections--
-    console.debug('disconnected from client')
-    if (target.sock !== null && !target.sock.destroyed) target.sock.destroy()
+    console.debug('client disconnected')
+    if (targetSocket !== null && !targetSocket.destroyed) targetSocket.destroy()
   })
 })
 
