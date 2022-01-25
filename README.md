@@ -16,7 +16,8 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ## 环境要求
 
-- [Node.js](https://nodejs.org/zh-cn/download/) 16.13.2+
+- [Node.js](https://nodejs.dev/) 16.13.2+
+- [Windows Terminal](https://github.com/microsoft/terminal)
 
 ## 依赖
 
@@ -49,15 +50,15 @@ $ npm i
 
 ```json
 {
-    "verbose": false,
-    "dns": "https://cloudflare-dns.com/dns-query",
-    "remote_address": "https://*.example.com/",
-    "remote_port": 80,
-    "local_address": "127.0.0.1",
-    "local_port": 8787,
-    "timeout": 5000,
-    "password": "secret",
-    "method": "aes-256-gcm"
+  "verbose": false,
+  "dns": "https://cloudflare-dns.com/dns-query",
+  "remote_address": "https://*.example.com/",
+  "remote_port": 80,
+  "local_address": "127.0.0.1",
+  "local_port": 8787,
+  "timeout": 5000,
+  "password": "secret",
+  "method": "aes-256-gcm"
 }
 ```
 
@@ -74,8 +75,8 @@ $ node --no-warnings local.mjs
 ss://...
 resolving ...
 trying ...
-remote server running on host ...
-local server listening on 0.0.0.0 port 8787
+server running on host ...
+listening on port 8787
 ```
 
 ### Shadowsocks for Windows

@@ -23,7 +23,7 @@ const CONFIG = './config.json';
   global.verbose = config.verbose
   const url = getURL(config)
   console.info(await QRCode.toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
-  console.info(url)
+  console.info(`${url.underline}\n`)
 
   const timeout = config.timeout
   const parsed = new URL(config.remote_address)
@@ -33,7 +33,7 @@ const CONFIG = './config.json';
     timeout,
     origin: config.remote_address, // for ws
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
       'Accept-Encoding': 'gzip, deflate, br'
@@ -41,7 +41,7 @@ const CONFIG = './config.json';
   }
 
   if (isIP(hostname)) {
-    console.info(`remote server running on host '${hostname}'`)
+    console.info(`server running on host '${hostname}'`)
     start(protocol, hostname, config.local_port, options)
     return
   }
@@ -50,7 +50,7 @@ const CONFIG = './config.json';
   options.servername = hostname // for tls
 
   if (isIP(config.lookup)) {
-    console.info(`remote server running on host '${hostname}' (${config.lookup})`)
+    console.info(`server running on host '${hostname}' (${config.lookup})`)
     start(protocol, config.lookup, config.local_port, options)
     return
   }
@@ -62,12 +62,12 @@ const CONFIG = './config.json';
   try {
     resolved4 = await resolver.resolve4(hostname)
   } catch (err) {
-    if (verbose) console.error(err)
+    console.warn(err.message.yellow)
   }
   try {
     resolved6 = await resolver.resolve6(hostname)
   } catch (err) {
-    if (verbose) console.error(err)
+    console.warn(err.message.yellow)
   }
   resolved = [...resolved4, ...resolved6]
   if (resolved.length === 0) {
@@ -86,7 +86,7 @@ const CONFIG = './config.json';
       const retval = await attempt(protocol, options)
       t = Date.now() - t
       if (retval) {
-        console.info(`used ${t}ms`.gray)
+        console.info(`succeeded in ${t}ms`.gray)
         if (t < min) { min = t; addr = record }
         continue
       }
@@ -98,13 +98,13 @@ const CONFIG = './config.json';
     process.exit(1)
   }
 
-  console.info(`remote server running on host '${hostname}' (${addr})`)
+  console.info(`server running on host '${hostname}' (${addr})`)
   start(protocol, addr, config.local_port, options)
 })()
 
-function getURL (c) {
-  const userinfo = Buffer.from(c.method + ':' + c.password).toString('base64')
-  return 'ss://' + userinfo + '@' + c.local_address + ':' + c.local_port
+function getURL (config) {
+  const userinfo = Buffer.from(config.method + ':' + config.password).toString('base64')
+  return 'ss://' + userinfo + '@' + config.local_address + ':' + config.local_port
 }
 
 function attempt (protocol, options) {
@@ -126,11 +126,11 @@ function attempt (protocol, options) {
     })
 
     req.on('timeout', () => {
-      req.destroy(new Error('timeout')) // see 'error' event
+      req.destroy(new Error('timeout')) // 'error' event will be called
     })
 
     req.on('error', (err) => {
-      if (verbose) console.error(err)
+      console.error(err.message.yellow)
       resolve(false)
     })
 
@@ -143,57 +143,49 @@ function start (protocol, remote_host, local_port, options) {
   const remote_address = prefix + remote_host
 
   const server = createServer()
-  server.on('connection', (c) => {
-    if (verbose) console.debug('connected from', c.remoteAddress)
+  server.on('connection', (client) => {
+    if (verbose) console.debug(`client connected: ${client.remoteAddress}:${client.remotePort}`)
 
+    let wss = null
     const ws = new WebSocket(remote_address, options)
-
+    ws.on('unexpected-response', (err) => {
+      console.error('unexpected response, please check your server and try again.'.red)
+      process.exit(1)
+    })
     ws.on('open', () => {
-      ws.s = createWebSocketStream(ws)
-      ws.s.pipe(c)
-      c.pipe(ws.s)
-
-      ws.s.on('error', (err) => {
-        if (verbose) console.error(err)
+      if (verbose) console.debug('connection opened')
+      wss = createWebSocketStream(ws)
+      wss.pipe(client)
+      client.pipe(wss)
+      wss.on('error', (err) => {
+        console.error(err.message.red)
       })
     })
-
-    ws.on('close', () => {
-      ws.s?.destroy()
-      c.destroyed || c.destroy()
-    })
-
-    ws.on('unexpected-response', (req, res) => {
-      console.error('received an unexpected response, check your server and try again'.red)
-      ws.s?.destroy()
-      c.destroyed || c.destroy()
-      server.close()
-    })
-
     ws.on('error', (err) => {
-      if (verbose) console.error(err)
-      ws.s?.destroy()
-      c.destroyed || c.destroy()
+      console.error(err.message.red)
+    })
+    ws.on('close', () => {
+      if (verbose) console.debug('connection closed')
+      wss?.destroy()
+      if (!client.destroyed) client.destroy()
     })
 
-    c.on('close', () => {
-      ws.s?.destroy()
-      ws.terminate()
+    client.on('error', (err) => {
+      console.error(err.message.red)
     })
-
-    c.on('error', (err) => {
-      if (verbose) console.error(err)
-      ws.s?.destroy()
+    client.on('close', () => {
+      if (verbose) console.debug(`client disconnected`)
+      wss?.destroy()
       ws.terminate()
     })
   })
 
   server.on('error', (err) => {
-    console.error(err)
+    console.error(err.message.red)
     process.exit(1)
   })
 
   server.listen(local_port, () => {
-    console.info(`local server listening on 0.0.0.0 port ${local_port}`)
+    console.info(`listening on port ${local_port}`.green)
   })
 }

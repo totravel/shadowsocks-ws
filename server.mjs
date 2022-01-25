@@ -25,7 +25,6 @@ const KEY = EVP_BytesToKey(PASS, KEY_SIZE).key
 const CLOSED  = 'closed'
 const OPENING = 'opening'
 const OPEN    = 'open'
-const QUEUE   = 'queue'
 
 const HTML = './index.html'
 
@@ -45,19 +44,13 @@ function dump (message, clientAddr, targetAddr, targetReadyState) {
 }
 
 wss.on('connection', (ws, req) => {
-
-  let clientSocket = req.socket
-  let clientAddr = `${req.socket.remoteAddress}:${req.socket.remotePort}`
-
+  const clientAddr = `${req.socket.remoteAddress}:${req.socket.remotePort}`
   let decipher = null
   let cipher = null
-
   let rx = []
   let tx = []
-
   let decryptedPayloadLength = null
-  let decryptedPayload = []
-
+  const decryptedPayload = []
   let targetReadyState = CLOSED
   let targetAddr = null
   let targetSocket = null
@@ -77,6 +70,7 @@ wss.on('connection', (ws, req) => {
 
     if (targetReadyState === OPENING) {
       rx.push(data)
+      console.debug('data buffered')
       return
     }
 
@@ -84,13 +78,12 @@ wss.on('connection', (ws, req) => {
       rx.push(data)
       data = Buffer.concat(rx)
       rx = []
+      console.debug('data consumed')
     }
 
     while (data.length > 0) {
-
       let payloadLength = decryptedPayloadLength
       if (payloadLength === null) {
-
         if (data.length < PAYLOAD_LENGTH_CHUNK_SIZE) {
           rx.push(data)
           console.debug('no data')
@@ -112,13 +105,13 @@ wss.on('connection', (ws, req) => {
         console.debug(`payload length decrypted: ${payloadLength}`)
       } else {
         decryptedPayloadLength = null
-        console.debug('payload length already decrypted')
+        console.debug('payload length already exists')
       }
 
       if (data.length < (payloadLength + TAG_SIZE)) {
         rx.push(data)
         decryptedPayloadLength = payloadLength
-        console.debug('payload length decrypted, but no more data')
+        console.debug('no data')
         return
       }
 
@@ -162,6 +155,7 @@ wss.on('connection', (ws, req) => {
         return
       }
       console.debug('target connected')
+
       targetReadyState = OPEN
       ws.resume()
       if (rx.length > 0) {
@@ -178,7 +172,6 @@ wss.on('connection', (ws, req) => {
 
       targetSocket.on('data', (data) => {
         console.debug(`${data.length} bytes sent to client`)
-
         while (data.length > 0) {
           const payload = data.slice(0, 0x3fff)
           const payloadLength = Buffer.alloc(2)
