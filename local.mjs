@@ -1,4 +1,5 @@
 
+import { info } from 'console'
 import { isIP, createServer } from 'net'
 import http from 'http'
 import https from 'https'
@@ -7,23 +8,23 @@ import QRCode from 'qrcode'
 import WebSocket, { createWebSocketStream } from 'ws'
 import DnsOverHttpResolver from 'dns-over-http-resolver'
 import { loadFile, parseJSON } from './helper.mjs'
+import { error, warn, debug } from './helper.mjs'
 
 const CONFIG = './config.json';
 
 (async () => {
-  console.clear()
-  console.info(loadFile('banner.txt'))
+  info(loadFile('banner.txt'))
 
   const config = parseJSON(loadFile(CONFIG))
   if (config === null) {
-    console.error(`failed to load '${CONFIG}' config`.red)
+    error(`failed to load '${CONFIG}' config`)
     process.exit(1)
   }
 
   global.verbose = config.verbose
   const url = getURL(config)
-  console.info(await QRCode.toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
-  console.info(`${url.underline}\n`)
+  info(await QRCode.toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
+  info(`${url.underline}\n`)
 
   const timeout = config.timeout
   const parsed = new URL(config.remote_address)
@@ -41,7 +42,7 @@ const CONFIG = './config.json';
   }
 
   if (isIP(hostname)) {
-    console.info(`server running on host '${hostname}'`)
+    info(`server running on host '${hostname}'`)
     start(protocol, hostname, config.local_port, options)
     return
   }
@@ -50,55 +51,55 @@ const CONFIG = './config.json';
   options.servername = hostname // for tls
 
   if (isIP(config.lookup)) {
-    console.info(`server running on host '${hostname}' (${config.lookup})`)
+    info(`server running on host '${hostname}' (${config.lookup})`)
     start(protocol, config.lookup, config.local_port, options)
     return
   }
 
-  console.info(`resolving ${hostname}...`)
+  info(`resolving ${hostname}...`)
   const resolver = new DnsOverHttpResolver()
   resolver.setServers([config.dns])
   let resolved4 = [], resolved6 = [], resolved = []
   try {
     resolved4 = await resolver.resolve4(hostname)
   } catch (err) {
-    console.warn(err.message.yellow)
+    warn(err.message)
   }
   try {
     resolved6 = await resolver.resolve6(hostname)
   } catch (err) {
-    console.warn(err.message.yellow)
+    warn(err.message)
   }
   resolved = [...resolved4, ...resolved6]
   if (resolved.length === 0) {
-    console.error(`failed to resolve host '${hostname}'`.red)
+    error(`failed to resolve host '${hostname}'`)
     process.exit(1)
   }
-  if (verbose) console.debug(resolved)
+  if (verbose) debug(resolved)
 
   let min = Infinity, addr = null
   for (const record of resolved) {
     const atyp = isIP(record)
     if (atyp) {
-      console.info(`trying ${record}...`)
+      info(`trying ${record}...`)
       options.host = record
       let t = Date.now()
       const retval = await attempt(protocol, options)
       t = Date.now() - t
       if (retval) {
-        console.info(`succeeded in ${t}ms`.gray)
+        info(`succeeded in ${t}ms`.gray)
         if (t < min) { min = t; addr = record }
         continue
       }
-      console.info('failed'.gray)
+      info('failed'.gray)
     }
   }
   if (addr === null) {
-    console.error('something bad happened'.red)
+    error('something bad happened')
     process.exit(1)
   }
 
-  console.info(`server running on host '${hostname}' (${addr})`)
+  info(`server running on host '${hostname}' (${addr})`)
   start(protocol, addr, config.local_port, options)
 })()
 
@@ -111,13 +112,13 @@ function attempt (protocol, options) {
   return new Promise((resolve, reject) => {
     const req = (protocol === 'https:' ? https : http).request(options, (res) => {
       if (res.headers['set-cookie']) {
-        if (verbose) console.debug(res.headers['set-cookie'])
+        if (verbose) debug(res.headers['set-cookie'])
         options.headers.cookie = res.headers['set-cookie'][0].split(';')[0]
       }
       if (verbose) {
         res.setEncoding('utf8')
         res.once('data', (chunk) => {
-          console.debug(res.headers['content-encoding'] ? 'zipped'.gray : chunk.gray)
+          debug(res.headers['content-encoding'] ? 'zipped'.gray : chunk.gray)
           resolve(true)
         })
       } else {
@@ -130,7 +131,7 @@ function attempt (protocol, options) {
     })
 
     req.on('error', (err) => {
-      console.error(err.message.yellow)
+      warn(err.message)
       resolve(false)
     })
 
@@ -144,48 +145,48 @@ function start (protocol, remote_host, local_port, options) {
 
   const server = createServer()
   server.on('connection', (client) => {
-    if (verbose) console.debug(`client connected: ${client.remoteAddress}:${client.remotePort}`)
+    if (verbose) debug(`client connected: ${client.remoteAddress}:${client.remotePort}`)
 
     let wss = null
     const ws = new WebSocket(remote_address, options)
-    ws.on('unexpected-response', (err) => {
-      console.error('unexpected response, please check your server and try again.'.red)
+    ws.on('unexpected-response', (req, res) => {
+      error('unexpected response, please check your server and try again.')
       process.exit(1)
     })
     ws.on('open', () => {
-      if (verbose) console.debug('connection opened')
+      if (verbose) debug('connection opened')
       wss = createWebSocketStream(ws)
       wss.pipe(client)
       client.pipe(wss)
       wss.on('error', (err) => {
-        console.error(err.message.red)
+        error(err.message)
       })
     })
     ws.on('error', (err) => {
-      console.error(err.message.red)
+      error(err.message)
     })
     ws.on('close', () => {
-      if (verbose) console.debug('connection closed')
+      if (verbose) debug('connection closed')
       wss?.destroy()
       if (!client.destroyed) client.destroy()
     })
 
     client.on('error', (err) => {
-      console.error(err.message.red)
+      error(err.message)
     })
     client.on('close', () => {
-      if (verbose) console.debug(`client disconnected`)
+      if (verbose) debug('client disconnected')
       wss?.destroy()
       ws.terminate()
     })
   })
 
   server.on('error', (err) => {
-    console.error(err.message.red)
+    error(err.message)
     process.exit(1)
   })
 
   server.listen(local_port, () => {
-    console.info(`listening on port ${local_port}`.green)
+    info(`listening on port ${local_port}, press Ctrl+C to stop`.green)
   })
 }

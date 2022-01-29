@@ -5,7 +5,7 @@ import { terser } from "rollup-plugin-terser"
 
 const minify = {
   compress: {
-    pure_funcs: ['console.debug']
+    pure_funcs: ['debug']
   }
 }
 

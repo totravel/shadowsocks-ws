@@ -1,4 +1,5 @@
 
+import colors from 'colors'
 import { readFileSync } from 'fs'
 import { createConnection } from 'net'
 import { createHash } from 'crypto'
@@ -50,3 +51,11 @@ export function inetNtop (buf) {
   for (let i = 0; i < 16; i += 2) { a.push(buf.readUInt16BE(i).toString(16)) }
   return a.join(':')
 }
+
+export const error = (msg, ...args) => console.error(`ERROR: ${msg}`.red, ...args)
+
+export const warn = (msg, ...args) => console.warn(`WARNING: ${msg}`.yellow, ...args)
+
+export const info = (msg, ...args) => console.info(`INFO: ${msg}`, ...args)
+
+export const debug = (msg, ...args) => console.debug(`DEBUG: ${msg}`.gray, ...args)
