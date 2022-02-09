@@ -22,11 +22,11 @@
     "colors": "^1.4.0",
     "dns-over-http-resolver": "^2.0.1",
     "qrcode": "^1.5.0",
-    "rollup": "^2.65.0",
+    "rollup": "^2.67.1",
     "rollup-plugin-terser": "^7.0.2",
     "terser": "^5.10.0",
-    "undici": "^4.12.2",
-    "ws": "^8.4.0"
+    "undici": "^4.13.0",
+    "ws": "^8.5.0"
   },
   "engines": {
     "node": "v16.13.2",

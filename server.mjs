@@ -4,8 +4,7 @@ import { createServer } from 'http'
 import { hkdfSync, randomBytes } from 'crypto'
 import WebSocket, { WebSocketServer } from 'ws'
 import { keySize, saltSize, tagSize, AEAD } from './aead.mjs'
-import { EVP_BytesToKey, createAndConnect, inetNtoa, inetNtop } from './helper.mjs'
-import { error, warn, info, debug } from './helper.mjs'
+import { EVP_BytesToKey, createAndConnect, inetNtoa, inetNtop, error, warn, info, debug } from './helper.mjs'
 
 import colors from 'colors'
 const { gray, green, magenta, blue } = colors
@@ -45,7 +44,7 @@ wss.on('connection', (ws, req) => {
   let tx = []
   let pending = false
   let payloadLength = 0
-  let payloads = []
+  const payloads = []
   let targetReadyState = CLOSED
   let targetAddr = null
   let targetSocket = null
@@ -137,21 +136,24 @@ wss.on('connection', (ws, req) => {
       ws.pause()
       rx.push(data)
 
-      const atyp = payload[0]
       let addr, port
-      if (atyp === 1) {
-        addr = inetNtoa(payload.slice(1, 5)) // IPv4
-        port = payload.readUInt16BE(5)
-      } else if (atyp === 3) {
-        addr = payload.slice(2, 2 + payload[1]).toString('binary') // Domain
-        port = payload.readUInt16BE(2 + payload[1])
-      } else if (atyp === 4) {
-        addr = inetNtop(payload.slice(1, 17)) // IPv6
-        port = payload.readUInt16BE(17)
-      } else {
-        warn('invalid atyp', dump(clientAddr, targetAddr, targetReadyState))
-        ws.terminate()
-        return
+      switch (payload[0]) {
+        case 1: // IPv4
+          addr = inetNtoa(payload.slice(1, 5))
+          port = payload.readUInt16BE(5)
+          break
+        case 3: // Domain
+          addr = payload.slice(2, 2 + payload[1]).toString('binary')
+          port = payload.readUInt16BE(2 + payload[1])
+          break
+        case 4: // IPv6
+          addr = inetNtop(payload.slice(1, 17))
+          port = payload.readUInt16BE(17)
+          break
+        default:
+          warn('invalid atyp', dump(clientAddr, targetAddr, targetReadyState))
+          ws.terminate()
+          return
       }
       targetAddr = `${addr}:${port}`
       debug(`target address parsed: ${addr}:${port}`)

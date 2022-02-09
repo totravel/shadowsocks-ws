@@ -20,19 +20,17 @@ export function parseJSON (str) {
   }
 }
 
-// https://www.openssl.org/docs/man1.1.1/man3/EVP_BytesToKey.html
-export function EVP_BytesToKey (data, keyLen, ivLen = 0) {
-  let m = []
-  let d = ''
-  let count = 0
+// https://www.openssl.org/docs/man3.0/man3/EVP_BytesToKey.html
+export function EVP_BytesToKey (data, keylen, ivlen = 0) {
+  let d = '', m = [], l = 0
   do {
     d = createHash('md5').update(d).update(data).digest()
     m.push(d)
-    count += d.length
-  } while (count < keyLen + ivLen)
+    l += d.length
+  } while (l < keylen + ivlen)
   m = Buffer.concat(m)
-  const key = m.slice(0, keyLen)
-  const iv = m.slice(keyLen, keyLen + ivLen)
+  const key = m.slice(0, keylen)
+  const iv  = m.slice(keylen, keylen + ivlen)
   return { key, iv }
 }
 
@@ -44,18 +42,26 @@ export function createAndConnect (port, addr) {
   })
 }
 
-export const inetNtoa = (buf) => `${buf[0]}.${buf[1]}.${buf[2]}.${buf[3]}`
+export function inetNtoa (buf) {
+  const a = []
+  for (let i = 0; i < 4; i++) {
+    a.push(buf.readUInt8(i).toString())
+  }
+  return a.join('.')
+}
 
 export function inetNtop (buf) {
   const a = []
-  for (let i = 0; i < 16; i += 2) { a.push(buf.readUInt16BE(i).toString(16)) }
+  for (let i = 0; i < 16; i += 2) {
+    a.push(buf.readUInt16BE(i).toString(16))
+  }
   return a.join(':')
 }
 
 export const error = (msg, ...args) => console.error(`ERROR: ${msg}`.red, ...args)
 
-export const warn = (msg, ...args) => console.warn(`WARNING: ${msg}`.yellow, ...args)
+export const warn  = (msg, ...args) => console.warn(`WARNING: ${msg}`.yellow, ...args)
 
-export const info = (msg, ...args) => console.info(`INFO: ${msg}`, ...args)
+export const info  = (msg, ...args) => console.info(`INFO: ${msg}`, ...args)
 
 export const debug = (msg, ...args) => console.debug(`DEBUG: ${msg}`.gray, ...args)

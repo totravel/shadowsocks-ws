@@ -21,13 +21,17 @@ const tagSize = {
   'chacha20-poly1305': 16
 }
 
+const options = {
+  'aes-256-gcm': {},
+  'chacha20-poly1305': { authTagLength: 16 }
+}
+
 class AEAD {
   constructor (algorithm, key) {
     this.algorithm = algorithm
     this.key = key
     this.nonce = Buffer.alloc(nonceSize[algorithm])
-    this.options = {}
-    if (algorithm === 'chacha20-poly1305') { this.options.authTagLength = tagSize[algorithm] }
+    this.options = options[algorithm]
   }
 
   decrypt (c, tag) {
@@ -56,7 +60,9 @@ class AEAD {
   incNonce () {
     const n = new Uint32Array(this.nonce.buffer)
     let i = 0
-    do n[i]++; while (n[i] === 0 && ++i < n.length)
+    do {
+      n[i]++
+    } while (n[i] === 0 && ++i < n.length)
   }
 }
 
