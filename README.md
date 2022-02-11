@@ -83,9 +83,8 @@ listening on port 8787
 
 打开 [Shadowsocks for Windows](https://github.com/shadowsocks/shadowsocks-windows)：
 
-1. 复制 shadowsocks-ws 客户端输出的 `ss://...`
-1. 在托盘区找到 Shadowsocks for Windows 的图标 > 右击
-    1. 服务器 > 从剪贴板导入 URL
+1. 系统托盘 > 上下文菜单
+    1. 服务器 > 扫描屏幕上的二维码
     1. 系统代理 > PAC 模式
 
 ### Clash for Windows
@@ -116,7 +115,7 @@ rules:
 
 1. 配置 > 导入上述配置文件
 1. 主页 > 打开「系统代理」开关
-1. 代理 > 直连
+1. 代理 > 规则
 
 ### SagerNet for Android
 

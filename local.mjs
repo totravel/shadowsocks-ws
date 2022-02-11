@@ -4,7 +4,7 @@ import { info } from 'console'
 import { isIP, createServer } from 'net'
 import http from 'http'
 import https from 'https'
-import QRCode from 'qrcode'
+import { toString } from 'qrcode'
 import WebSocket, { createWebSocketStream } from 'ws'
 import DnsOverHttpResolver from 'dns-over-http-resolver'
 import { loadFile, parseJSON, error, warn, debug } from './helper.mjs'
@@ -20,7 +20,7 @@ import { loadFile, parseJSON, error, warn, debug } from './helper.mjs'
 
   global.verbose = config.verbose
   const url = getURL(config)
-  info(await QRCode.toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
+  info(await toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
   info(`${url.underline}\n`)
 
   const timeout = config.timeout
