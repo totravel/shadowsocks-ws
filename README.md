@@ -17,6 +17,7 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 ## 环境要求
 
 - [Node.js](https://nodejs.dev/) 16.13.2+
+- [Git for Windows](https://gitforwindows.org/)
 - [Windows Terminal](https://github.com/microsoft/terminal)
 
 ## 部署
@@ -110,6 +111,30 @@ rules:
 1. 主页 > 打开「系统代理」开关
 1. 代理 > 规则
 
+#### 获取和使用规则集
+
+执行脚本 `ruleset.sh` 下载 [规则集](https://github.com/Loyalsoldier/clash-rules)。
+
+```shell
+$ ./ruleset.sh
+dowloading reject.yaml...
+dowloading icloud.yaml...
+dowloading apple.yaml...
+dowloading google.yaml...
+dowloading proxy.yaml...
+dowloading direct.yaml...
+dowloading private.yaml...
+dowloading gfw.yaml...
+dowloading greatfire.yaml...
+dowloading tld-not-cn.yaml...
+dowloading telegramcidr.yaml...
+dowloading cncidr.yaml...
+dowloading lancidr.yaml...
+dowloading applications.yaml...
+```
+
+使用规则集的配置文件的模板为 `blacklist.yaml.example` 或 `whitelist.yaml.example`。
+
 ### SagerNet for Android
 
 将手机和电脑连接至同一网络，打开 [SagerNet for Android](https://github.com/SagerNet/SagerNet)：
@@ -120,10 +145,11 @@ rules:
 
 ## 鸣谢
 
-- [colors](https://github.com/Marak/colors.js)
-- [dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
-- [qrcode](https://github.com/soldair/node-qrcode)
-- [ws](https://github.com/websockets/ws)
+- [Loyalsoldier/clash-rules](https://github.com/Loyalsoldier/clash-rules)
+- [Marak/colors](https://github.com/Marak/colors.js)
+- [vasco-santos/dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
+- [soldair/qrcode](https://github.com/soldair/node-qrcode)
+- [websockets/ws](https://github.com/websockets/ws)
 
 ## 许可协议
 
