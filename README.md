@@ -19,13 +19,6 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 - [Node.js](https://nodejs.dev/) 16.13.2+
 - [Windows Terminal](https://github.com/microsoft/terminal)
 
-## 依赖
-
-- [colors](https://github.com/Marak/colors.js)
-- [dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
-- [qrcode](https://github.com/soldair/node-qrcode)
-- [ws](https://github.com/websockets/ws)
-
 ## 部署
 
 ### Heroku
@@ -124,6 +117,13 @@ rules:
 1. 右上角 > 添加服务器配置 > 扫描二维码
 1. 修改服务器配置 > 将「服务器」字段由 `127.0.0.1` 修改为电脑的 IP 地址
 1. 右下角 > 连接
+
+## 鸣谢
+
+- [colors](https://github.com/Marak/colors.js)
+- [dns-over-http-resolver](https://github.com/vasco-santos/dns-over-http-resolver)
+- [qrcode](https://github.com/soldair/node-qrcode)
+- [ws](https://github.com/websockets/ws)
 
 ## 许可协议
 

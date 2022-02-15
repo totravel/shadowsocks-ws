@@ -7,11 +7,11 @@ proxies:
     password: "secret"
 
 proxy-groups:
-  - name: Proxy
+  - name: PROXY
     type: select
     proxies:
       - ss1
 
 rules:
   - GEOIP,CN,DIRECT
-  - MATCH,Proxy
+  - MATCH,PROXY

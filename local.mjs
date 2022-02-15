@@ -108,15 +108,8 @@ function getURL (config) {
 function attempt (protocol, options) {
   return new Promise((resolve, reject) => {
     const req = (protocol === 'https:' ? https : http).request(options, (res) => {
-      if (res.headers['set-cookie']) {
-        if (global.verbose) debug(res.headers['set-cookie'])
-        options.headers.cookie = res.headers['set-cookie'][0].split(';')[0]
-      }
-      res.setEncoding('utf8')
-      res.once('data', (chunk) => {
-        if (global.verbose) debug(res.headers['content-encoding'] ? 'zipped'.gray : chunk.gray)
-        resolve(true)
-      })
+      if (res.statusCode === 200) resolve(true)
+      resolve(false)
     })
 
     req.on('timeout', () => {
