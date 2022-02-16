@@ -1,5 +1,5 @@
 
-import colors from 'colors'
+import 'colors'
 import { readFileSync } from 'fs'
 import { createConnection } from 'net'
 import { createHash } from 'crypto'
