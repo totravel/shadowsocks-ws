@@ -44,7 +44,6 @@ $ npm i
 
 ```json
 {
-  "verbose": false,
   "dns": "https://cloudflare-dns.com/dns-query",
   "remote_address": "https://*.example.com/",
   "remote_port": 80,
@@ -95,14 +94,14 @@ proxies:
     password: "secret"
 
 proxy-groups:
-  - name: Proxy
+  - name: PROXY
     type: select
     proxies:
       - ss1
 
 rules:
   - GEOIP,CN,DIRECT
-  - MATCH,Proxy
+  - MATCH,PROXY
 ```
 
 打开 [Clash for Windows](https://github.com/ender-zhao/Clash-for-Windows_Chinese)：

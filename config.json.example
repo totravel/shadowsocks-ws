@@ -1,5 +1,4 @@
-{
-  "verbose": false,
+
   "dns": "https://cloudflare-dns.com/dns-query",
   "remote_address": "https://*.example.com/",
   "remote_port": 80,

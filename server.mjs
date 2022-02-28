@@ -5,7 +5,10 @@ import { createServer } from 'http'
 import { hkdfSync, randomBytes } from 'crypto'
 import WebSocket, { WebSocketServer } from 'ws'
 import { keySize, saltSize, tagSize, AEAD } from './aead.mjs'
-import { EVP_BytesToKey, createAndConnect, inetNtoa, inetNtop, error, warn, info, debug } from './helper.mjs'
+import {
+  EVP_BytesToKey, createAndConnect, inetNtoa, inetNtop,
+  errorlog, warnlog, infolog, debuglog
+} from './helper.mjs'
 
 const METHOD = process.env.METHOD === 'aes-256-gcm' ? 'aes-256-gcm' : 'chacha20-poly1305'
 const PASS   = process.env.PASS    || 'secret'
@@ -44,14 +47,14 @@ wss.on('connection', (ws, req) => {
   let to = 'null'
   let remote = null
 
-  debug(`client connected: ${from}`)
+  debuglog(`client connected: ${from}`)
   ws.on('message', async (data) => {
     if (decipher === null) {
       const salt = data.slice(0, SALT_SIZE)
       data = data.slice(SALT_SIZE)
       const dk = hkdfSync('sha1', KEY, salt, 'ss-subkey', KEY_SIZE)
       decipher = new AEAD(METHOD, dk)
-      debug('decipher initialized')
+      debuglog('decipher initialized')
     }
 
     if (rx.length > 0) {
@@ -66,13 +69,13 @@ wss.on('connection', (ws, req) => {
         const payload = decipher.decrypt(encryptedPayload, payloadTag)
 
         if (payload === null) {
-          warn('invalid password or cipher', dump(from, to, readyState))
+          warnlog('invalid password or cipher', dump(from, to, readyState))
           ws.terminate() // 'close' event will be called
           return
         }
 
         payloads.push(payload)
-        debug('payload decrypted')
+        debuglog('payload decrypted')
         pending = false
       }
     }
@@ -80,7 +83,7 @@ wss.on('connection', (ws, req) => {
     while (data.length > 0) {
       if (data.length < PAYLOAD_LENGTH_CHUNK_SIZE) {
         rx.push(data)
-        debug('no data')
+        debuglog('no data')
         break
       }
 
@@ -90,7 +93,7 @@ wss.on('connection', (ws, req) => {
       length = decipher.decrypt(encryptedPayloadLength, lengthTag)
 
       if (length === null) {
-        warn('invalid password or cipher', dump(from, to, readyState))
+        warnlog('invalid password or cipher', dump(from, to, readyState))
         ws.terminate() // 'close' event will be called
         return
       }
@@ -100,7 +103,7 @@ wss.on('connection', (ws, req) => {
       if (data.length < chunkLength) {
         rx.push(data)
         pending = true
-        debug('pending')
+        debuglog('pending')
         break
       }
 
@@ -109,12 +112,12 @@ wss.on('connection', (ws, req) => {
       data = data.slice(chunkLength)
       const payload = decipher.decrypt(encryptedPayload, payloadTag)
       if (payload === null) {
-        warn('invalid password or cipher', dump(from, to, readyState))
+        warnlog('invalid password or cipher', dump(from, to, readyState))
         ws.terminate() // 'close' event will be called
         return
       }
       payloads.push(payload)
-      debug('payload decrypted')
+      debuglog('payload decrypted')
     }
     data = null
 
@@ -139,17 +142,17 @@ wss.on('connection', (ws, req) => {
           port = address.readUInt16BE(17)
           break
         default:
-          warn('invalid atyp', dump(from, to, readyState))
+          warnlog('invalid atyp', dump(from, to, readyState))
           ws.terminate()
           return
       }
       to = `${addr}:${port}`
-      debug(`remote address parsed: ${addr}:${port}`)
+      debuglog(`remote address parsed: ${addr}:${port}`)
 
       try {
         remote = await createAndConnect(port, addr)
       } catch (err) {
-        error(err.message, dump(from, to, readyState))
+        errorlog(err.message, dump(from, to, readyState))
         ws.terminate()
         return
       }
@@ -161,16 +164,16 @@ wss.on('connection', (ws, req) => {
 
       readyState = OPEN
       ws.resume()
-      debug('remote connected')
+      debuglog('remote connected')
 
       const salt = randomBytes(SALT_SIZE)
       tx.push(salt)
       const dk = hkdfSync('sha1', KEY, salt, 'ss-subkey', KEY_SIZE)
       cipher = new AEAD(METHOD, dk)
-      debug('cipher initialized')
+      debuglog('cipher initialized')
 
       remote.on('data', (data) => {
-        debug('reply received')
+        debuglog('reply received')
         while (data.length > 0) {
           const payload = data.slice(0, 0x3fff)
           const length = Buffer.alloc(2)
@@ -187,10 +190,10 @@ wss.on('connection', (ws, req) => {
       })
 
       // 'close' event will be called
-      remote.on('error', (err) => error(err.message, dump(from, to, readyState)))
+      remote.on('error', (err) => errorlog(err.message, dump(from, to, readyState)))
       remote.on('end', () => remote.end())
       remote.on('close', () => {
-        debug('remote disconnected')
+        debuglog('remote disconnected')
         if (ws.readyState === WebSocket.OPEN) ws.terminate()
       })
     }
@@ -199,20 +202,20 @@ wss.on('connection', (ws, req) => {
     while (payloads.length !== 0) {
       if (remote.write(payloads.shift()) === false)
         await new Promise(resolve => remote.once('drain', resolve))
-      debug('payload sent')
+      debuglog('payload sent')
     }
     ws.resume()
   })
 
   ws.on('close', () => {
-    debug('client disconnected')
+    debuglog('client disconnected')
     if (remote !== null && !remote.destroyed) remote.destroy()
     decipher = cipher = rx = tx = null
   })
 })
 
 server.listen(PORT, () => {
-  info(`server running at http://0.0.0.0:${PORT}/`)
+  infolog(`server running at http://0.0.0.0:${PORT}/`)
 })
 
 const dump = (from, to, readyState) => `from=${from.blue} to=${to.cyan} readyState=${readyState.green}`

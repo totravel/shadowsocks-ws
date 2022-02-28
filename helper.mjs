@@ -3,6 +3,7 @@ import 'colors'
 import { readFileSync } from 'fs'
 import { createConnection } from 'net'
 import { createHash } from 'crypto'
+import { error, warn, info, debug } from 'console'
 
 export function loadFile (path) {
   try {
@@ -58,10 +59,11 @@ export function inetNtop (buf) {
   return a.join(':')
 }
 
-export const error = (msg, ...args) => console.error(`ERROR: ${msg}`.red, ...args)
+export const errorlog = (msg, ...args) => error(`ERROR: ${msg}`.red, ...args)
 
-export const warn  = (msg, ...args) => console.warn(`WARNING: ${msg}`.yellow, ...args)
+export const warnlog  = (msg, ...args) => warn(`WARNING: ${msg}`.yellow, ...args)
 
-export const info  = (msg, ...args) => console.info(`INFO: ${msg}`, ...args)
+export const infolog  = (msg, ...args) => info(`INFO: ${msg}`, ...args)
 
-export const debug = (msg, ...args) => console.debug(`DEBUG: ${msg}`.gray, ...args)
+export const debuglog = process.env.DEBUG === 'true' ?
+  (msg, ...args) => debug(`DEBUG: ${msg}`.gray, ...args) : () => {}

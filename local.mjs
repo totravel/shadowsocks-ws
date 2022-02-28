@@ -1,27 +1,26 @@
 
 import 'colors'
-import { info } from 'console'
 import { isIP, createServer } from 'net'
 import http from 'http'
 import https from 'https'
 import { toString } from 'qrcode'
 import WebSocket, { createWebSocketStream } from 'ws'
 import DnsOverHttpResolver from 'dns-over-http-resolver'
-import { loadFile, parseJSON, error, warn, debug } from './helper.mjs'
+import { info as infolog } from 'console'
+import { loadFile, parseJSON, errorlog, warnlog, debuglog } from './helper.mjs'
 
 (async () => {
-  info(loadFile('banner.txt'))
+  infolog(loadFile('banner.txt'))
 
   const config = parseJSON(loadFile('./config.json'))
   if (config === null) {
-    error('failed to load config')
+    errorlog('failed to load config')
     process.exit(1)
   }
 
-  global.verbose = config.verbose
   const url = getURL(config)
-  info(await toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
-  info(`${url.underline}\n`)
+  infolog(await toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
+  infolog(`${url.underline}\n`)
 
   const timeout = config.timeout
   const parsed = new URL(config.remote_address)
@@ -39,7 +38,7 @@ import { loadFile, parseJSON, error, warn, debug } from './helper.mjs'
   }
 
   if (isIP(hostname)) {
-    info(`server running on host '${hostname}'`)
+    infolog(`server running on host '${hostname}'`)
     start(protocol, hostname, config.local_port, options)
     return
   }
@@ -48,55 +47,55 @@ import { loadFile, parseJSON, error, warn, debug } from './helper.mjs'
   options.servername = hostname // for tls
 
   if (isIP(config.lookup)) {
-    info(`server running on host '${hostname}' (${config.lookup})`)
+    infolog(`server running on host '${hostname}' (${config.lookup})`)
     start(protocol, config.lookup, config.local_port, options)
     return
   }
 
-  info(`resolving ${hostname}...`)
+  infolog(`resolving ${hostname}...`)
   const resolver = new DnsOverHttpResolver()
   resolver.setServers([config.dns])
   let resolved4 = [], resolved6 = [], resolved = []
   try {
     resolved4 = await resolver.resolve4(hostname)
   } catch (err) {
-    warn(err.message)
+    warnlog(err.message)
   }
   try {
     resolved6 = await resolver.resolve6(hostname)
   } catch (err) {
-    warn(err.message)
+    warnlog(err.message)
   }
   resolved = [...resolved4, ...resolved6]
   if (resolved.length === 0) {
-    error(`failed to resolve host '${hostname}'`)
+    errorlog(`failed to resolve host '${hostname}'`)
     process.exit(1)
   }
-  if (global.verbose) debug(resolved)
+  debuglog(resolved)
 
   let min = Infinity, addr = null
   for (const record of resolved) {
     const atyp = isIP(record)
     if (atyp) {
-      info(`trying ${record}...`)
+      infolog(`trying ${record}...`)
       options.host = record
       let t = Date.now()
       const retval = await attempt(protocol, options)
       t = Date.now() - t
       if (retval) {
-        info(`succeeded in ${t}ms`.gray)
+        infolog(`succeeded in ${t}ms`.gray)
         if (t < min) { min = t; addr = record }
         continue
       }
-      info('failed'.gray)
+      infolog('failed'.gray)
     }
   }
   if (addr === null) {
-    error('something bad happened')
+    errorlog('something bad happened')
     process.exit(1)
   }
 
-  info(`server running on host '${hostname}' (${addr})`)
+  infolog(`server running on host '${hostname}' (${addr})`)
   start(protocol, addr, config.local_port, options)
 })()
 
@@ -117,7 +116,7 @@ function attempt (protocol, options) {
     })
 
     req.on('error', (err) => {
-      warn(err.message)
+      warnlog(err.message)
       resolve(false)
     })
 
@@ -131,48 +130,42 @@ function start (protocol, remote_host, local_port, options) {
 
   const server = createServer()
   server.on('connection', (client) => {
-    if (global.verbose) debug(`client connected: ${client.remoteAddress}:${client.remotePort}`)
+    debuglog(`client connected: ${client.remoteAddress}:${client.remotePort}`)
 
     let wss = null
     const ws = new WebSocket(remote_address, options)
     ws.on('unexpected-response', (req, res) => {
-      error('unexpected response, please check your server and try again.')
+      errorlog('unexpected response, please check your server and try again.')
       process.exit(1)
     })
     ws.on('open', () => {
-      if (global.verbose) debug('connection opened')
+      debuglog('connection opened')
       wss = createWebSocketStream(ws)
       wss.pipe(client)
       client.pipe(wss)
-      wss.on('error', (err) => {
-        error(err.message)
-      })
+      wss.on('error', (err) => errorlog(err.message))
     })
-    ws.on('error', (err) => {
-      error(err.message)
-    })
+    ws.on('error', (err) => errorlog(err.message))
     ws.on('close', () => {
-      if (global.verbose) debug('connection closed')
+      debuglog('connection closed')
       wss?.destroy()
       if (!client.destroyed) client.destroy()
     })
 
-    client.on('error', (err) => {
-      error(err.message)
-    })
+    client.on('error', (err) => errorlog(err.message))
     client.on('close', () => {
-      if (global.verbose) debug('client disconnected')
+      debuglog('client disconnected')
       wss?.destroy()
       ws.terminate()
     })
   })
 
   server.on('error', (err) => {
-    error(err.message)
+    errorlog(err.message)
     process.exit(1)
   })
 
   server.listen(local_port, () => {
-    info(`listening on port ${local_port}, press Ctrl+C to stop`.green)
+    infolog(`listening on port ${local_port}, press Ctrl+C to stop`.green)
   })
 }
