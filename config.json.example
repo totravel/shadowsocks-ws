@@ -1,5 +1,5 @@
-
-  "dns": "https://cloudflare-dns.com/dns-query",
+{
+  "dns": "https://doh.pub/dns-query",
   "remote_address": "https://*.example.com/",
   "remote_port": 80,
   "local_address": "127.0.0.1",
