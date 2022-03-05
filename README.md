@@ -28,7 +28,7 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ### Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Ftotravel%2Fshadowsocks-ws&envs=METHOD%2CPASS%2CPORT&METHODDesc=Only+%27chacha20-ietf-poly1305%27+and+%27aes-256-gcm%27+are+supported.&PASSDesc=Your+password.&PORTDesc=1-65535&METHODDefault=chacha20-ietf-poly1305&PASSDefault=secret&PORTDefault=80&referralCode=Vd85VV)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?code=JUoGnO&referralCode=Vd85VV)
 
 ## 本地配置
 
@@ -150,7 +150,7 @@ dowloading applications.yaml...
 - [soldair/qrcode][qrcode] qr code generator
 - [Shadowsocks for Windows][sfw] A C# port of shadowsocks 
 - [Clash for Windows][cfw] clash for windows汉化版. 提供clash for windows的汉化版, 汉化补丁及汉化版安装程序
-- [Loyalsoldier/clash-rules][clash-rules] 🦄️ 🎃 👻 Clash Premium 规则集(RULE-SET)，兼容 ClashX Pro、Clash for Windows 客户端。
+- [Loyalsoldier/clash-rules][clash-rules] Clash Premium 规则集(RULE-SET)，兼容 ClashX Pro、Clash for Windows 客户端。
 - [SagerNet for Android][sn] The universal proxy toolchain for Android
 
 ## 许可协议

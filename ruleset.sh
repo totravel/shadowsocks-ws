@@ -25,8 +25,8 @@ fi
 
 for file in ${files[@]}; do
   echo dowloading ${file}.yaml...
-  curl -s -k \
+  curl ${url}${file}.txt \
+    -s -k \
     -x socks5h://127.0.0.1:7890 \
-    -o ~/.config/clash/ruleset/${file}.yaml \
-    ${url}${file}.txt
+    -o ~/.config/clash/ruleset/${file}.yaml
 done

@@ -65,5 +65,6 @@ export const warnlog  = (msg, ...args) => warn(`WARNING: ${msg}`.yellow, ...args
 
 export const infolog  = (msg, ...args) => info(`INFO: ${msg}`, ...args)
 
-export const debuglog = process.env.DEBUG === 'true' ?
-  (msg, ...args) => debug(`DEBUG: ${msg}`.gray, ...args) : () => {}
+export const debuglog = process.env.DEBUG === 'true'
+  ? (msg, ...args) => debug(`DEBUG: ${msg}`.gray, ...args)
+  : () => null
