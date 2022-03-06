@@ -101,6 +101,7 @@ proxy-groups:
       - ss1
 
 rules:
+  - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
   - MATCH,PROXY
 ```
