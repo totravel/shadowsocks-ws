@@ -16,9 +16,9 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ## 环境要求
 
-- [Node.js](https://nodejs.dev/) 16.13.2+
-- [Windows Terminal](https://github.com/microsoft/terminal)
-- [Git for Windows](https://gitforwindows.org/)
+- [Node.js][nodejs] 16.13.2+
+- [Windows Terminal][wt]
+- [Git for Windows][gfw]
 
 ## 部署
 
@@ -28,7 +28,7 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ### Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?code=JUoGnO&referralCode=Vd85VV)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/rrEaiA?referralCode=ssws)
 
 ## 本地配置
 
@@ -72,6 +72,8 @@ trying ...
 server running on host ...
 listening on port 8787
 ```
+
+下文根据需要选择性阅读。
 
 ### Shadowsocks for Windows
 
@@ -159,11 +161,16 @@ downloading applications.yaml...
 
 [MIT](LICENSE)
 
+[nodejs]: https://nodejs.dev/
+[wt]: https://github.com/microsoft/terminal
+[gfw]: https://gitforwindows.org/
+
 [heroku]: https://www.heroku.com/
 [sfw]: https://github.com/shadowsocks/shadowsocks-windows
 [cfw]: https://github.com/ender-zhao/Clash-for-Windows_Chinese
 [clash-rules]: https://github.com/Loyalsoldier/clash-rules
 [sn]: https://github.com/SagerNet/SagerNet
+
 [ws]: https://github.com/websockets/ws
 [dns-over-http-resolver]: https://github.com/vasco-santos/dns-over-http-resolver
 [colors]: https://github.com/Marak/colors.js
