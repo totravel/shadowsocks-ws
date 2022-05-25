@@ -3,12 +3,17 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.staticfile.org/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <title>Enjoy yourself</title>
   </head>
-  <body class="bg-dark text-light">
+  <body>
     <div class="vh-100 d-flex justify-content-center align-items-center">
       <h1 class="display-4 user-select-none">You're free as a bird!</h1>
     </div>
+    <script>
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('bg-dark', 'text-light');
+      }
+    </script>
   </body>
 </html>

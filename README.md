@@ -16,7 +16,7 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ## 环境要求
 
-- [Node.js][nodejs] 16.13.2+
+- [Node.js][nodejs] 16.15.0+
 - [Windows Terminal][wt]
 - [Git for Windows][gfw]
 
