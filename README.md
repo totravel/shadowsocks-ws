@@ -16,7 +16,7 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ## 环境要求
 
-- [Node.js][nodejs] 16.15.0+
+- [Node.js][nodejs] 16.16.0+
 - [Windows Terminal][wt]
 - [Git for Windows][gfw]
 
@@ -28,7 +28,7 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ### Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/rrEaiA?referralCode=ssws)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/9exsjX?referralCode=ssws)
 
 ## 本地配置
 
@@ -62,10 +62,10 @@ $ npm i
 - 360DNS `https://doh.360.cn/query`
 - Cloudflare `https://cloudflare-dns.com/dns-query`
 
-启动 shadowsocks-ws 客户端：
+执行脚本 `start.sh` 启动 shadowsocks-ws 客户端：
 
 ```shell
-$ node --no-warnings local.mjs
+$ ./start.sh
 ss://...
 resolving ...
 trying ...

@@ -17,19 +17,19 @@
   "bugs": "https://github.com/totravel/shadowsocks-ws/issues",
   "license": "MIT",
   "dependencies": {
-    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-commonjs": "^22.0.1",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "colors": "^1.4.0",
-    "dns-over-http-resolver": "^2.0.1",
+    "dns-over-http-resolver": "^2.1.0",
     "qrcode": "^1.5.0",
-    "rollup": "^2.72.1",
+    "rollup": "^2.76.0",
     "rollup-plugin-terser": "^7.0.2",
-    "undici": "^5.1.1",
-    "ws": "^8.6.0"
+    "undici": "^5.7.0",
+    "ws": "^8.8.0"
   },
   "engines": {
-    "node": "v16.15.0",
-    "npm": "v8.5.5"
+    "node": "v16.16.0",
+    "npm": "v8.11.0"
   },
   "devDependencies": {
     "eslint": "^7.32.0",
