@@ -99,12 +99,12 @@ import { loadFile, parseJSON, errorlog, warnlog, debuglog } from './helper.mjs'
   start(protocol, addr, config.local_port, options)
 })()
 
-function getURL (config) {
+function getURL(config) {
   const userinfo = Buffer.from(config.method + ':' + config.password).toString('base64')
   return 'ss://' + userinfo + '@' + config.local_address + ':' + config.local_port
 }
 
-function attempt (protocol, options) {
+function attempt(protocol, options) {
   return new Promise((resolve, reject) => {
     const req = (protocol === 'https:' ? https : http).request(options, (res) => {
       if (res.statusCode === 200) resolve(true)
@@ -124,7 +124,7 @@ function attempt (protocol, options) {
   })
 }
 
-function start (protocol, remote_host, local_port, options) {
+function start(protocol, remote_host, local_port, options) {
   const prefix = protocol === 'https:' ? 'wss://' : 'ws://'
   const remote_address = prefix + remote_host
 

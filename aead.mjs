@@ -27,14 +27,14 @@ const options = {
 }
 
 class AEAD {
-  constructor (algorithm, key) {
+  constructor(algorithm, key) {
     this.algorithm = algorithm
     this.key = key
     this.nonce = Buffer.alloc(nonceSize[algorithm])
     this.options = options[algorithm]
   }
 
-  decrypt (c, tag) {
+  decrypt(c, tag) {
     const d = createDecipheriv(this.algorithm, this.key, this.nonce, this.options)
     const m = []
     m.push(d.setAuthTag(tag).update(c))
@@ -47,7 +47,7 @@ class AEAD {
     }
   }
 
-  encrypt (m) {
+  encrypt(m) {
     const e = createCipheriv(this.algorithm, this.key, this.nonce, this.options)
     const c = []
     c.push(e.update(m))
@@ -57,7 +57,7 @@ class AEAD {
     return Buffer.concat(c)
   }
 
-  incNonce () {
+  incNonce() {
     const n = new Uint32Array(this.nonce.buffer)
     let i = 0
     do {

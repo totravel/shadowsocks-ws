@@ -27,6 +27,8 @@ const OPEN    = 'open'
 
 const KEY = EVP_BytesToKey(PASS, KEY_SIZE).key
 
+const dump = (from, to, readyState) => `from=${from.blue} to=${to.cyan} readyState=${readyState.green}`
+
 const server = createServer((req, res) => {
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/html')
@@ -200,8 +202,9 @@ wss.on('connection', (ws, req) => {
 
     ws.pause()
     while (payloads.length !== 0) {
-      if (remote.write(payloads.shift()) === false)
+      if (remote.write(payloads.shift()) === false) {
         await new Promise(resolve => remote.once('drain', resolve))
+      }
       debuglog('payload sent')
     }
     ws.resume()
@@ -214,8 +217,4 @@ wss.on('connection', (ws, req) => {
   })
 })
 
-server.listen(PORT, () => {
-  infolog(`server running at http://0.0.0.0:${PORT}/`)
-})
-
-const dump = (from, to, readyState) => `from=${from.blue} to=${to.cyan} readyState=${readyState.green}`
+server.listen(PORT, () => infolog(`server running at http://0.0.0.0:${PORT}/`))

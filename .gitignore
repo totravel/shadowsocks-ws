@@ -1,8 +1,7 @@
 /node_modules
 package-lock.json
 config.json
-clash.yaml
-blacklist.yaml
-whitelist.yaml
+*.yaml
+*.toml
 *.min.js
 *.min.js.map

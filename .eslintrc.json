@@ -15,6 +15,7 @@
     "no-multi-spaces": "off",
     "no-new": "off",
     "one-var": "off",
-    "quote-props": "off"
+    "quote-props": "off",
+    "space-before-function-paren": "off"
   }
 }
