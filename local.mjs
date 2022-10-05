@@ -135,7 +135,9 @@ function start(protocol, remote_host, local_port, options) {
     let wss = null
     const ws = new WebSocket(remote_address, options)
     ws.on('unexpected-response', (req, res) => {
-      errorlog('unexpected response, please check your server and try again.')
+      debuglog(`HTTP response status code: ${res.statusCode}`)
+      if (res.statusCode === 429) return
+      errorlog(`unexpected response received from server. please ensure that the server is running.`)
       process.exit(1)
     })
     ws.on('open', () => {
