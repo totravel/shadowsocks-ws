@@ -129,27 +129,33 @@ wss.on('connection', (ws, req) => {
       ws.pause()
 
       let addr, port
-      const address = payloads.shift()
+      let address = payloads.shift()
       switch (address[0]) {
         case 3: // Domain
           addr = address.slice(2, 2 + address[1]).toString('binary')
           port = address.readUInt16BE(2 + address[1])
+          address = address.slice(4 + address[1])
           break
         case 1: // IPv4
           addr = inetNtoa(address.slice(1, 5))
           port = address.readUInt16BE(5)
+          address = address.slice(7)
           break
         case 4: // IPv6
           addr = inetNtop(address.slice(1, 17))
           port = address.readUInt16BE(17)
+          address = address.slice(19)
           break
         default:
           warnlog('invalid atyp', dump(from, to, readyState))
           ws.terminate()
           return
       }
+      if (address.length != 0) {
+        payloads.push(address)
+      }
       to = `${addr}:${port}`
-      debuglog(`remote address parsed: ${addr}:${port}`)
+      debuglog(`remote address parsed: ${to}`)
 
       try {
         remote = await createAndConnect(port, addr)

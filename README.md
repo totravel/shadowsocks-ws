@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/github/license/totravel/shadowsocks-ws)
 ![GitHub last commit](https://img.shields.io/github/last-commit/totravel/shadowsocks-ws)
 
-shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，可以部署在 [Heroku][heroku] 等平台。
+shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，可以部署在 [Heroku][heroku] 等 PaaS 平台，也可以部署在 VPS 上。
 
 ```
         socks5            tcp               websocket                tcp
@@ -12,7 +12,16 @@ client <------> ss-local <---> ss-ws-local <-- gfw --> ss-ws-remote <---> target
                 encrypt                                decrypt
 ```
 
-shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadowsocks for Windows][sfw] 等现有 Shadowsocks 客户端使用。shadowsocks-ws 客户端和服务器端之间使用 WebSocket 协议进行通信。shadowsocks-ws 服务器对外表现为一个 Web 服务器，可以用浏览器访问。
+shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadowsocks for Windows][sfw] 等常规 Shadowsocks 客户端使用。shadowsocks-ws 客户端和服务器端之间使用 WebSocket 协议进行通信。shadowsocks-ws 服务器对外表现为一个 Web 服务器，可以用浏览器访问。
+
+shadowsocks-ws 兼容下列 Shadowsocks 客户端：
+
+- [Shadowsocks for Windows][sfw]
+- [Clash for Windows][cfw]
+- [SagerNet for Android][sn]
+- [shadowsocks-libev][ss-libev]
+- [go-shadowsocks2][go-ss2]
+- [shadowsocks-rust][ss-rust]
 
 ## 环境要求
 
@@ -148,6 +157,29 @@ downloading applications.yaml...
 1. 修改服务器配置 > 将「服务器」字段由 `127.0.0.1` 修改为电脑的 IP 地址
 1. 右下角 > 连接
 
+### shadowsocks-rust
+
+使用 shadowsocks-rust 需要另外准备一个配置文件，例如：
+
+```json
+{
+  "server": "127.0.0.1",
+  "server_port": 8787,
+  "password": "secret",
+  "method": "aes-256-gcm",
+  "local_address": "127.0.0.1",
+  "local_port": 1080
+}
+```
+
+然后用如下命令启动 shadowsocks-rust：
+
+```shell
+$ ./sslocal -c config.json --log-without-time
+INFO  shadowsocks local 1.14.3 build 2022-04-04T17:19:11.998958100+00:00
+INFO  shadowsocks socks TCP listening on 127.0.0.1:1080
+```
+
 ## 鸣谢
 
 - [websockets/ws][ws] Simple to use, blazing fast and thoroughly tested WebSocket client and server for Node.js
@@ -168,10 +200,14 @@ downloading applications.yaml...
 [gfw]: https://gitforwindows.org/
 
 [heroku]: https://www.heroku.com/
+
 [sfw]: https://github.com/shadowsocks/shadowsocks-windows
 [cfw]: https://github.com/ender-zhao/Clash-for-Windows_Chinese
 [clash-rules]: https://github.com/Loyalsoldier/clash-rules
 [sn]: https://github.com/SagerNet/SagerNet
+[ss-libev]: https://github.com/shadowsocks/shadowsocks-libev
+[go-ss2]: https://github.com/shadowsocks/go-shadowsocks2
+[ss-rust]: https://github.com/shadowsocks/shadowsocks-rust
 
 [ws]: https://github.com/websockets/ws
 [dns-over-http-resolver]: https://github.com/vasco-santos/dns-over-http-resolver

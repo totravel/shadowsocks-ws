@@ -1,6 +1,6 @@
 {
   "name": "shadowsocks-ws",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Shadowsocks over WebSocket",
   "main": "server.min.js",
   "scripts": {
@@ -24,12 +24,12 @@
     "qrcode": "^1.5.1",
     "rollup": "^2.79.1",
     "rollup-plugin-terser": "^7.0.2",
-    "undici": "^5.11.0",
-    "ws": "^8.9.0"
+    "undici": "^5.12.0",
+    "ws": "^8.11.0"
   },
   "engines": {
-    "node": "v16.17.1",
-    "npm": "v8.15.0"
+    "node": "v18.12.1",
+    "npm": "v8.19.2"
   },
   "devDependencies": {
     "eslint": "^7.32.0",
