@@ -208,15 +208,15 @@ INFO  shadowsocks socks TCP listening on 127.0.0.1:1080
 
 ### 用 Shadowsocks 客户端连接 shadowsocks-ws 服务器失败？
 
-不能直接用 Shadowsocks 客户端连接 shadowsocks-ws 服务器。要使用 shadowsocks-ws，必须在本地运行 shadowsocks-ws 客户端，再让 Shadowsocks 客户端连接到 shadowsocks-ws 客户端。具体步骤见 [客户端配置](#客户端配置)。
+不能直接用 Shadowsocks 客户端连接 shadowsocks-ws 服务器。要使用 shadowsocks-ws，必须先在本地运行 shadowsocks-ws 客户端，再让 Shadowsocks 客户端连接到 shadowsocks-ws 客户端。具体步骤见 [客户端配置](#客户端配置)。
 
-### 如何确认 shadowsocks-ws 服务器已经成功部署并且可以正常使用？
+### 如何确认 shadowsocks-ws 服务器已经部署成功并且可以正常访问？
 
-直接在浏览器的地址栏输入 shadowsocks-ws 服务器的地址并访问。如果可以看到 `You're free as a bird!`，就说明服务器工作正常。
+直接在浏览器的地址栏中输入 shadowsocks-ws 服务器的地址并访问。如果可以看到 `You're free as a bird!`，就说明服务器已经可以正常访问。
 
-### shadowsocks-ws 客户端尝试了所有 IP 地址，结果都超时？
+### shadowsocks-ws 客户端提示所有 IP 地址都连接超时？
 
-先用浏览器访问服务器，确保服务器可以使用。再尝试修改配置文件中的 `dns` 字段并重试。
+先用浏览器访问服务器，确保服务器可以访问。再修改配置文件中的 `dns` 字段并重试。
 
 ### 有支持 Shadowsocks 2022 的计划吗？
 
