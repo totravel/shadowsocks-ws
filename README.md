@@ -31,7 +31,7 @@ shadowsocks-ws 兼容下列 Shadowsocks 客户端：
 
 ## 服务器部署
 
-shadowsocks-ws 服务器使用的加密方案、密码和端口号分别可以通过环境变量 `METHOD`、`PASS` 和 `PORT` 设置。目前，shadowsocks-ws 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密算法。
+shadowsocks-ws 服务器使用的加密方案、密码和端口号分别可以通过环境变量 `METHOD`、`PASS` 和 `PORT` 设置。目前，shadowsocks-ws 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密方案。
 
 ### PaaS
 
@@ -206,7 +206,7 @@ INFO  shadowsocks socks TCP listening on 127.0.0.1:1080
 
 ## 帮助
 
-有疑问可在 [此处](https://github.com/totravel/shadowsocks/issues) 提问。
+有疑问可在 [此处](https://github.com/totravel/shadowsocks-ws/issues) 提问。
 
 ## 鸣谢
 
