@@ -204,9 +204,27 @@ INFO  shadowsocks local 1.14.3 build 2022-04-04T17:19:11.998958100+00:00
 INFO  shadowsocks socks TCP listening on 127.0.0.1:1080
 ```
 
-## 帮助
+## 常见问题
 
-有疑问可在 [此处](https://github.com/totravel/shadowsocks-ws/issues) 提问。
+### 用 Shadowsocks 客户端连接 shadowsocks-ws 服务器失败？
+
+不能直接用 Shadowsocks 客户端连接 shadowsocks-ws 服务器。要使用 shadowsocks-ws，必须在本地运行 shadowsocks-ws 客户端，再让 Shadowsocks 客户端连接到 shadowsocks-ws 客户端。具体步骤见 [客户端配置](#客户端配置)。
+
+### 如何确认 shadowsocks-ws 服务器已经部署成功并且可以使用？
+
+直接在浏览器的地址栏输入 shadowsocks-ws 服务器的地址并访问。如果可以看到 `You're free as a bird!`，就说明服务器工作正常。
+
+### shadowsocks-ws 客户端尝试了所有 IP 地址，结果都超时？
+
+先用浏览器访问服务器，确保服务器可以使用。再尝试修改配置文件中的 `dns` 字段并重试。
+
+### 有支持 Shadowsocks 2022 的计划吗？
+
+有。由于 [Shadowsocks 2022][ss2022] 变化较大，需要更多的时间进行开发和测试。
+
+## 求助和反馈
+
+有任何疑问，可以在 [这里](https://github.com/totravel/shadowsocks-ws/issues) 进行提问。
 
 ## 鸣谢
 
@@ -242,3 +260,5 @@ INFO  shadowsocks socks TCP listening on 127.0.0.1:1080
 [dns-over-http-resolver]: https://github.com/vasco-santos/dns-over-http-resolver
 [colors]: https://github.com/Marak/colors.js
 [qrcode]: https://github.com/soldair/node-qrcode
+
+[ss2022]: https://github.com/Shadowsocks-NET/shadowsocks-specs
