@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/github/license/totravel/shadowsocks-ws)
 ![GitHub last commit](https://img.shields.io/github/last-commit/totravel/shadowsocks-ws)
 
-shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，可以部署在 [Heroku][heroku] 等 PaaS 平台，也可以部署在 VPS 上。
+shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，可以部署在 [Heroku][heroku] 和 [Railway][railway] 等 PaaS 平台，也可以部署在 VPS 上。
 
 ```
         socks5            tcp               websocket                tcp
@@ -29,21 +29,49 @@ shadowsocks-ws 兼容下列 Shadowsocks 客户端：
 - [Windows Terminal][wt]
 - [Git for Windows][gfw]
 
-## 部署
+## 服务器部署
 
-shadowsocks-ws 服务器使用的加密算法、密码和端口号分别可以通过环境变量 `METHOD`、`PASS` 和 `PORT` 设置。目前，shadowsocks-ws 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密算法。
+shadowsocks-ws 服务器使用的加密方案、密码和端口号分别可以通过环境变量 `METHOD`、`PASS` 和 `PORT` 设置。目前，shadowsocks-ws 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密算法。
 
-### Heroku
+### PaaS
+
+Heroku
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-### Railway
+Railway
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/9exsjX?referralCode=ssws)
 
-## 本地配置
+### VPS
 
-克隆代码到本地，安装依赖：
+克隆代码，安装依赖：
+
+```shell
+$ git clone https://github.com/totravel/shadowsocks-ws.git
+$ cd shadowsocks-ws
+$ npm i
+```
+
+设置加密方案、密码和端口号：
+
+```shell
+$ export METHOD=aes-256-gcm
+$ export PASS=secret
+$ export PORT=80
+```
+
+构建并启动：
+
+```shell
+$ npm run build
+$ npm run start
+INFO: server running at http://0.0.0.0:80/
+```
+
+## 客户端配置
+
+克隆代码，安装依赖：
 
 ```shell
 $ git clone https://github.com/totravel/shadowsocks-ws.git
@@ -77,11 +105,7 @@ $ npm i
 
 ```shell
 $ ./start.sh
-ss://...
-resolving ...
-trying ...
-server running on host ...
-listening on port 8787
+listening on port 8787, press Ctrl+C to stop
 ```
 
 下文根据需要选择性阅读。
@@ -180,6 +204,10 @@ INFO  shadowsocks local 1.14.3 build 2022-04-04T17:19:11.998958100+00:00
 INFO  shadowsocks socks TCP listening on 127.0.0.1:1080
 ```
 
+## 帮助
+
+有疑问可在 [此处](https://github.com/totravel/shadowsocks/issues) 提问。
+
 ## 鸣谢
 
 - [websockets/ws][ws] Simple to use, blazing fast and thoroughly tested WebSocket client and server for Node.js
@@ -200,6 +228,7 @@ INFO  shadowsocks socks TCP listening on 127.0.0.1:1080
 [gfw]: https://gitforwindows.org/
 
 [heroku]: https://www.heroku.com/
+[railway]: https://railway.app/
 
 [sfw]: https://github.com/shadowsocks/shadowsocks-windows
 [cfw]: https://github.com/ender-zhao/Clash-for-Windows_Chinese
