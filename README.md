@@ -228,7 +228,11 @@ INFO  shadowsocks socks TCP listening on 127.0.0.1:1080
 
 ## 求助和反馈
 
-有任何疑问，可以在 [这里](https://github.com/totravel/shadowsocks-ws/issues) 进行提问。
+求助和反馈可以在 [这里](https://github.com/totravel/shadowsocks-ws/issues) 进行。
+
+## 讨论和交流
+
+讨论和交流可以在 [这里](https://github.com/totravel/shadowsocks-ws/discussions) 进行。
 
 ## 鸣谢
 
