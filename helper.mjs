@@ -35,7 +35,7 @@ export function EVP_BytesToKey(data, keylen, ivlen = 0) {
   return { key, iv }
 }
 
-export function createAndConnect(port, addr) {
+export function connect(port, addr) {
   return new Promise((resolve, reject) => {
     const sock = createConnection(port, addr)
     sock.once('connect', () => resolve(sock))

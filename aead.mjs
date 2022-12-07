@@ -26,6 +26,13 @@ const options = {
   'chacha20-poly1305': { authTagLength: 16 }
 }
 
+function increase(nonce) {
+  let i = 0
+  do {
+    nonce[i]++
+  } while (nonce[i] === 0 && ++i < nonce.length)
+}
+
 class AEAD {
   constructor(algorithm, key) {
     this.algorithm = algorithm
@@ -40,7 +47,7 @@ class AEAD {
     m.push(d.setAuthTag(tag).update(c))
     try {
       m.push(d.final())
-      this.incNonce()
+      increase(this.nonce)
       return Buffer.concat(m)
     } catch (e) {
       return null
@@ -53,16 +60,8 @@ class AEAD {
     c.push(e.update(m))
     c.push(e.final())
     c.push(e.getAuthTag())
-    this.incNonce()
+    increase(this.nonce)
     return Buffer.concat(c)
-  }
-
-  incNonce() {
-    const n = new Uint32Array(this.nonce.buffer)
-    let i = 0
-    do {
-      n[i]++
-    } while (n[i] === 0 && ++i < n.length)
   }
 }
 

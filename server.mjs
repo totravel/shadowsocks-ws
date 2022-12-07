@@ -6,9 +6,11 @@ import { hkdfSync, randomBytes } from 'crypto'
 import WebSocket, { WebSocketServer } from 'ws'
 import { keySize, saltSize, tagSize, AEAD } from './aead.mjs'
 import {
-  EVP_BytesToKey, createAndConnect, inetNtoa, inetNtop,
+  EVP_BytesToKey, connect, inetNtoa, inetNtop,
   errorlog, warnlog, infolog, debuglog
 } from './helper.mjs'
+
+const dump = (from, to, stage) => `from=${from.blue} to=${to.cyan} stage=${stage.green}`
 
 const METHOD = process.env.METHOD === 'aes-256-gcm' ? 'aes-256-gcm' : 'chacha20-poly1305'
 const PASS   = process.env.PASS    || 'secret'
@@ -18,16 +20,12 @@ const KEY_SIZE  = keySize[METHOD]
 const SALT_SIZE = saltSize[METHOD]
 const TAG_SIZE  = tagSize[METHOD]
 
-const PAYLOAD_LENGTH_SIZE = 2
-const PAYLOAD_LENGTH_CHUNK_SIZE = 2 + TAG_SIZE
-
 const CLOSED  = 'closed'
 const OPENING = 'opening'
 const OPEN    = 'open'
+const WRITING = 'writing'
 
 const KEY = EVP_BytesToKey(PASS, KEY_SIZE).key
-
-const dump = (from, to, readyState) => `from=${from.blue} to=${to.cyan} readyState=${readyState.green}`
 
 const server = createServer((req, res) => {
   res.statusCode = 200
@@ -39,115 +37,105 @@ const wss = new WebSocketServer({ server })
 
 wss.on('connection', (ws, req) => {
   const from = `${req.socket.remoteAddress}:${req.socket.remotePort}`
-  let decipher = null
-  let cipher = null
+  debuglog(`client connected: ${from}`)
+
   let rx = [], tx = []
-  let pending = false
-  let length = 0
+  let decipher = null, cipher = null
+  let chunkIndex = 0
+  let cipherTextSize = 2
   const payloads = []
-  let readyState = CLOSED
-  let to = 'null'
+  let stage = CLOSED
+  let to = 'unknown'
   let remote = null
 
-  debuglog(`client connected: ${from}`)
   ws.on('message', async (data) => {
+    // retrieve bytes received last time
+    if (rx.length > 0) {
+      rx.push(data)
+      data = Buffer.concat(rx)
+      rx = []
+    }
+
+    // init decipher
     if (decipher === null) {
-      const salt = data.slice(0, SALT_SIZE)
-      data = data.slice(SALT_SIZE)
+      if (data.length < SALT_SIZE) {
+        rx.push(data)
+        debuglog('more bytes needed')
+        return
+      }
+
+      const salt = Buffer.alloc(SALT_SIZE)
+      data.copy(salt, 0, 0, SALT_SIZE)
+      data = data.subarray(SALT_SIZE)
+
       const dk = hkdfSync('sha1', KEY, salt, 'ss-subkey', KEY_SIZE)
       decipher = new AEAD(METHOD, dk)
       debuglog('decipher initialized')
     }
 
-    if (rx.length > 0) {
-      rx.push(data)
-      data = Buffer.concat(rx)
-      rx = []
-
-      if (pending) {
-        const encryptedPayload = data.slice(0, length)
-        const payloadTag = data.slice(length, length + TAG_SIZE)
-        data = data.slice(length + TAG_SIZE)
-        const payload = decipher.decrypt(encryptedPayload, payloadTag)
-
-        if (payload === null) {
-          warnlog('invalid password or cipher', dump(from, to, readyState))
-          ws.terminate() // 'close' event will be called
-          return
-        }
-
-        payloads.push(payload)
-        debuglog('payload decrypted')
-        pending = false
-      }
-    }
-
+    // decrypt chunks
     while (data.length > 0) {
-      if (data.length < PAYLOAD_LENGTH_CHUNK_SIZE) {
+      const chunkSize = cipherTextSize + TAG_SIZE
+      if (data.length < chunkSize) {
         rx.push(data)
-        debuglog('no data')
+        debuglog('more bytes needed')
         break
       }
 
-      const encryptedPayloadLength = data.slice(0, PAYLOAD_LENGTH_SIZE)
-      const lengthTag = data.slice(PAYLOAD_LENGTH_SIZE, PAYLOAD_LENGTH_CHUNK_SIZE)
-      data = data.slice(PAYLOAD_LENGTH_CHUNK_SIZE)
-      length = decipher.decrypt(encryptedPayloadLength, lengthTag)
+      const chunk = data.subarray(0, chunkSize)
+      data = data.subarray(chunkSize)
 
-      if (length === null) {
-        warnlog('invalid password or cipher', dump(from, to, readyState))
+      const cipherText = chunk.subarray(0, cipherTextSize)
+      const authTag = chunk.subarray(cipherTextSize)
+      const plainText = decipher.decrypt(cipherText, authTag)
+
+      if (plainText === null) {
+        warnlog('invalid password or cipher', dump(from, to, stage))
         ws.terminate() // 'close' event will be called
         return
       }
-      length = length.readUInt16BE(0)
 
-      const chunkLength = length + TAG_SIZE
-      if (data.length < chunkLength) {
-        rx.push(data)
-        pending = true
-        debuglog('pending')
-        break
+      if (chunkIndex % 2 === 0) { // current chunk is length chunk
+        cipherTextSize = plainText.readUInt16BE(0)
+      } else { // current chunk is payload chunk
+        cipherTextSize = 2
+        payloads.push(plainText)
+        debuglog('payload decrypted')
       }
-
-      const encryptedPayload = data.slice(0, length)
-      const payloadTag = data.slice(length, chunkLength)
-      data = data.slice(chunkLength)
-      const payload = decipher.decrypt(encryptedPayload, payloadTag)
-      if (payload === null) {
-        warnlog('invalid password or cipher', dump(from, to, readyState))
-        ws.terminate() // 'close' event will be called
-        return
-      }
-      payloads.push(payload)
-      debuglog('payload decrypted')
+      chunkIndex++
     }
     data = null
 
-    if (readyState === OPENING || payloads.length === 0 || ws.isPaused) return
-    if (readyState === CLOSED) {
-      readyState = OPENING
-      ws.pause()
+    // consume payloads
+    if (payloads.length === 0) {
+      return
+    }
+    if (stage === OPENING || stage === WRITING) {
+      return
+    }
+    if (stage === CLOSED) {
+      stage = OPENING
 
       let addr, port
       let address = payloads.shift()
       switch (address[0]) {
         case 3: // Domain
-          addr = address.slice(2, 2 + address[1]).toString('binary')
+          addr = address.subarray(2, 2 + address[1]).toString('binary')
           port = address.readUInt16BE(2 + address[1])
-          address = address.slice(4 + address[1])
+          address = address.subarray(4 + address[1])
           break
         case 1: // IPv4
-          addr = inetNtoa(address.slice(1, 5))
+          addr = inetNtoa(address.subarray(1, 5))
           port = address.readUInt16BE(5)
-          address = address.slice(7)
+          address = address.subarray(7)
           break
         case 4: // IPv6
-          addr = inetNtop(address.slice(1, 17))
+          addr = inetNtop(address.subarray(1, 17))
           port = address.readUInt16BE(17)
-          address = address.slice(19)
+          address = address.subarray(19)
           break
         default:
-          warnlog('invalid atyp', dump(from, to, readyState))
+          warnlog('invalid atyp', dump(from, to, stage))
           ws.terminate()
           return
       }
@@ -158,21 +146,20 @@ wss.on('connection', (ws, req) => {
       debuglog(`remote address parsed: ${to}`)
 
       try {
-        remote = await createAndConnect(port, addr)
+        ws.pause()
+        remote = await connect(port, addr)
+        ws.resume()
       } catch (err) {
-        errorlog(err.message, dump(from, to, readyState))
+        errorlog(err.message, dump(from, to, stage))
         ws.terminate()
         return
       }
+      debuglog('remote connected')
 
       if (ws.readyState !== WebSocket.OPEN) {
         remote.destroy()
         return
       }
-
-      readyState = OPEN
-      ws.resume()
-      debuglog('remote connected')
 
       const salt = randomBytes(SALT_SIZE)
       tx.push(salt)
@@ -183,12 +170,12 @@ wss.on('connection', (ws, req) => {
       remote.on('data', (data) => {
         debuglog('reply received')
         while (data.length > 0) {
-          const payload = data.slice(0, 0x3fff)
+          const payload = data.subarray(0, 0x3fff)
           const length = Buffer.alloc(2)
           length.writeUInt16BE(payload.length)
           tx.push(cipher.encrypt(length))
           tx.push(cipher.encrypt(payload))
-          data = data.slice(0x3fff)
+          data = data.subarray(0x3fff)
         }
         data = null
 
@@ -198,7 +185,7 @@ wss.on('connection', (ws, req) => {
       })
 
       // 'close' event will be called
-      remote.on('error', (err) => errorlog(err.message, dump(from, to, readyState)))
+      remote.on('error', (err) => errorlog(err.message, dump(from, to, stage)))
       remote.on('end', () => remote.end())
       remote.on('close', () => {
         debuglog('remote disconnected')
@@ -206,14 +193,16 @@ wss.on('connection', (ws, req) => {
       })
     }
 
-    ws.pause()
     while (payloads.length !== 0) {
       if (remote.write(payloads.shift()) === false) {
+        stage = WRITING
+        ws.pause()
         await new Promise(resolve => remote.once('drain', resolve))
+        ws.resume()
       }
       debuglog('payload sent')
     }
-    ws.resume()
+    stage = OPEN
   })
 
   ws.on('close', () => {
