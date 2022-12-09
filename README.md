@@ -47,36 +47,35 @@ Railway
 
 克隆代码，安装依赖：
 
-```shell
-$ git clone https://github.com/totravel/shadowsocks-ws.git
-$ cd shadowsocks-ws
-$ npm i
+```bash
+git clone https://github.com/totravel/shadowsocks-ws.git
+cd shadowsocks-ws
+npm i
 ```
 
 设置加密方案、密码和端口号：
 
-```shell
-$ export METHOD=aes-256-gcm
-$ export PASS=secret
-$ export PORT=80
+```bash
+export METHOD=aes-256-gcm
+export PASS=secret
+export PORT=80
 ```
 
 构建并启动：
 
-```shell
-$ npm run build
-$ npm run start
-INFO: server running at http://0.0.0.0:80/
+```bash
+npm run build
+npm start
 ```
 
 ## 客户端配置
 
 克隆代码，安装依赖：
 
-```shell
-$ git clone https://github.com/totravel/shadowsocks-ws.git
-$ cd shadowsocks-ws
-$ npm i
+```bash
+git clone https://github.com/totravel/shadowsocks-ws.git
+cd shadowsocks-ws
+npm i
 ```
 
 将配置文件 `config.json.example` 重命名为 `config.json` 并修改 `remote_address`、`password` 和 `method` 三个字段。
@@ -103,9 +102,8 @@ $ npm i
 
 执行脚本 `start.sh` 启动 shadowsocks-ws 客户端：
 
-```shell
-$ ./start.sh
-listening on port 8787, press Ctrl+C to stop
+```bash
+./start.sh
 ```
 
 下文根据需要选择性阅读。
@@ -153,22 +151,8 @@ rules:
 
 执行脚本 `ruleset.sh` 下载 [Clash 规则集][clash-rules]。
 
-```shell
-$ ./ruleset.sh
-downloading reject.yaml...
-downloading icloud.yaml...
-downloading apple.yaml...
-downloading google.yaml...
-downloading proxy.yaml...
-downloading direct.yaml...
-downloading private.yaml...
-downloading gfw.yaml...
-downloading greatfire.yaml...
-downloading tld-not-cn.yaml...
-downloading telegramcidr.yaml...
-downloading cncidr.yaml...
-downloading lancidr.yaml...
-downloading applications.yaml...
+```bash
+./ruleset.sh
 ```
 
 使用规则集的配置文件的模板为 `blacklist.yaml.example` 或 `whitelist.yaml.example`。
@@ -198,10 +182,8 @@ downloading applications.yaml...
 
 然后用如下命令启动 shadowsocks-rust：
 
-```shell
-$ ./sslocal -c config.json --log-without-time
-INFO  shadowsocks local 1.14.3 build 2022-04-04T17:19:11.998958100+00:00
-INFO  shadowsocks socks TCP listening on 127.0.0.1:1080
+```bash
+./sslocal -c config.json --log-without-time
 ```
 
 ## 常见问题
