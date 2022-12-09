@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/github/license/totravel/shadowsocks-ws)
 ![GitHub last commit](https://img.shields.io/github/last-commit/totravel/shadowsocks-ws)
 
-shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，可以部署在 [Heroku][heroku] 和 [Railway][railway] 等 PaaS 平台，也可以部署在 VPS 上。
+shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，既可以部署在 [Heroku][heroku] 和 [Railway][railway] 等 PaaS 平台，也可以部署在 VPS 上。
 
 ```
         socks5            tcp               websocket                tcp
@@ -210,11 +210,11 @@ rules:
 
 ## 求助和反馈
 
-求助和反馈可以在 [这里](https://github.com/totravel/shadowsocks-ws/issues) 进行。
+求助和反馈可以在 [Issues](https://github.com/totravel/shadowsocks-ws/issues) 版块进行。
 
 ## 讨论和交流
 
-讨论和交流可以在 [这里](https://github.com/totravel/shadowsocks-ws/discussions) 进行。
+讨论和交流可以在 [Discussions](https://github.com/totravel/shadowsocks-ws/discussions) 版块进行。
 
 ## 鸣谢
 
