@@ -193,9 +193,9 @@ wss.on('connection', (ws, req) => {
       })
     }
 
+    stage = WRITING
     while (payloads.length !== 0) {
       if (remote.write(payloads.shift()) === false) {
-        stage = WRITING
         ws.pause()
         await new Promise(resolve => remote.once('drain', resolve))
         ws.resume()
