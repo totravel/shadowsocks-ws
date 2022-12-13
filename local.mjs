@@ -14,7 +14,7 @@ import { loadFile, parseJSON, errorlog, warnlog, debuglog } from './helper.mjs'
 
   const config = parseJSON(loadFile('./config.json'))
   if (config === null) {
-    errorlog('failed to load config')
+    errorlog('failed to load config.json')
     process.exit(1)
   }
 
@@ -23,12 +23,12 @@ import { loadFile, parseJSON, errorlog, warnlog, debuglog } from './helper.mjs'
   infolog(`${url.underline}\n`)
 
   const timeout = config.timeout
-  const parsed = new URL(config.remote_address)
+  const parsed = new URL(config.server)
   const hostname = parsed.hostname
   const protocol = parsed.protocol
   const options = {
     timeout,
-    origin: config.remote_address, // for ws
+    origin: config.server, // for ws
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0) Gecko/20100101 Firefox/100.0',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -54,7 +54,7 @@ import { loadFile, parseJSON, errorlog, warnlog, debuglog } from './helper.mjs'
 
   infolog(`resolving ${hostname}...`)
   const resolver = new DnsOverHttpResolver()
-  resolver.setServers([config.dns])
+  resolver.setServers([config.lookup])
   let resolved4 = [], resolved6 = [], resolved = []
   try {
     resolved4 = await resolver.resolve4(hostname)
@@ -80,18 +80,18 @@ import { loadFile, parseJSON, errorlog, warnlog, debuglog } from './helper.mjs'
       infolog(`trying ${record}...`)
       options.host = record
       let t = Date.now()
-      const retval = await attempt(protocol, options)
+      const msg = await attempt(protocol, options)
       t = Date.now() - t
-      if (retval) {
-        infolog(`succeeded in ${t}ms`.gray)
+      if (msg === 'OK') {
+        infolog(`connected ${record} in ${t}ms`.gray)
         if (t < min) { min = t; addr = record }
         continue
       }
-      infolog('failed'.gray)
+      infolog(`failed to connect to ${record}: ${msg}`.gray)
     }
   }
   if (addr === null) {
-    errorlog('something bad happened')
+    errorlog('failed to connect to server')
     process.exit(1)
   }
 
@@ -107,8 +107,7 @@ function getURL(config) {
 function attempt(protocol, options) {
   return new Promise((resolve, reject) => {
     const req = (protocol === 'https:' ? https : http).request(options, (res) => {
-      if (res.statusCode === 200) resolve(true)
-      resolve(false)
+      resolve(res.statusMessage)
     })
 
     req.on('timeout', () => {
@@ -116,8 +115,7 @@ function attempt(protocol, options) {
     })
 
     req.on('error', (err) => {
-      warnlog(err.message)
-      resolve(false)
+      resolve(err.message)
     })
 
     req.end()
@@ -126,18 +124,18 @@ function attempt(protocol, options) {
 
 function start(protocol, remote_host, local_port, options) {
   const prefix = protocol === 'https:' ? 'wss://' : 'ws://'
-  const remote_address = prefix + remote_host
+  const server_addr = prefix + remote_host
 
   const server = createServer()
   server.on('connection', (client) => {
     debuglog(`client connected: ${client.remoteAddress}:${client.remotePort}`)
 
     let wss = null
-    const ws = new WebSocket(remote_address, options)
+    const ws = new WebSocket(server_addr, options)
     ws.on('unexpected-response', (req, res) => {
       debuglog(`HTTP response status code: ${res.statusCode}`)
       if (res.statusCode === 429) return
-      errorlog(`unexpected response received from server. please ensure that the server is running.`)
+      errorlog(`unexpected response received from server`)
       process.exit(1)
     })
     ws.on('open', () => {
@@ -168,6 +166,7 @@ function start(protocol, remote_host, local_port, options) {
   })
 
   server.listen(local_port, () => {
-    infolog(`listening on port ${local_port}, press Ctrl+C to stop`.green)
+    infolog(`local listening on 0.0.0.0:${local_port}`)
+    infolog('press Ctrl+C to stop'.green)
   })
 }

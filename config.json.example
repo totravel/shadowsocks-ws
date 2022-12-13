@@ -1,10 +1,10 @@
 {
-  "dns": "https://doh.pub/dns-query",
-  "remote_address": "https://*.example.com/",
-  "remote_port": 80,
+  "lookup": "https://doh.pub/dns-query",
+  "server": "https://*.example.com/",
+  "server_port": 80,
   "local_address": "127.0.0.1",
   "local_port": 8787,
-  "timeout": 5000,
   "password": "secret",
-  "method": "aes-256-gcm"
+  "method": "aes-256-gcm",
+  "timeout": 5000
 }

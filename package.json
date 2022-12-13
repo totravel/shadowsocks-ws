@@ -1,13 +1,14 @@
 {
   "name": "shadowsocks-ws",
-  "version": "6.0.2",
+  "version": "6.1.0",
   "description": "Shadowsocks over WebSocket",
   "main": "server.min.js",
   "scripts": {
     "dev": "rollup -c && node --enable-source-maps server.min.js",
     "build": "rollup -c",
     "start": "node server.min.js",
-    "lint": "eslint --ext .mjs ./"
+    "lint": "eslint --ext .mjs ./",
+    "local": "node --no-warnings local.mjs"
   },
   "repository": {
     "type": "git",
@@ -17,14 +18,14 @@
   "bugs": "https://github.com/totravel/shadowsocks-ws/issues",
   "license": "MIT",
   "dependencies": {
-    "@rollup/plugin-commonjs": "^23.0.3",
+    "@rollup/plugin-commonjs": "^23.0.4",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-terser": "^0.1.0",
     "colors": "^1.4.0",
     "dns-over-http-resolver": "^2.1.1",
     "qrcode": "^1.5.1",
-    "rollup": "^3.5.1",
-    "undici": "^5.13.0",
+    "rollup": "^3.7.4",
+    "undici": "^5.14.0",
     "ws": "^8.11.0"
   },
   "engines": {

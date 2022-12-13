@@ -78,32 +78,32 @@ cd shadowsocks-ws
 npm i
 ```
 
-将配置文件 `config.json.example` 重命名为 `config.json` 并修改 `remote_address`、`password` 和 `method` 三个字段。
+将配置文件的模板 `config.json.example` 重命名为 `config.json` 并修改 `remote_address`、`password` 和 `method` 三个字段。
 
 ```json
 {
-  "dns": "https://doh.pub/dns-query",
-  "remote_address": "https://*.example.com/",
-  "remote_port": 80,
+  "lookup": "https://doh.pub/dns-query",
+  "server": "https://*.example.com/",
+  "server_port": 80,
   "local_address": "127.0.0.1",
   "local_port": 8787,
-  "timeout": 5000,
   "password": "secret",
-  "method": "aes-256-gcm"
+  "method": "aes-256-gcm",
+  "timeout": 5000
 }
 ```
 
-`dns` 字段一般无须修改。下列取值供参考：
+`lookup` 字段一般无须修改。下列取值供参考：
 
 - DNSPod `https://doh.pub/dns-query`
 - AliDNS `https://dns.alidns.com/resolve`
 - 360DNS `https://doh.360.cn/query`
 - Cloudflare `https://cloudflare-dns.com/dns-query`
 
-执行脚本 `start.sh` 启动 shadowsocks-ws 客户端：
+启动 shadowsocks-ws 客户端：
 
 ```bash
-./start.sh
+npm run local
 ```
 
 下文根据需要选择性阅读。
