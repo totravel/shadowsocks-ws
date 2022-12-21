@@ -1,7 +1,7 @@
 
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
-import terser from '@rollup/plugin-terser';
+import terser from '@rollup/plugin-terser'
 
 export default {
   input: 'server.mjs',
@@ -9,7 +9,7 @@ export default {
     file: 'server.min.js',
     format: 'cjs',
     sourcemap: true,
-    plugins: [terser()]
+    plugins: [ terser() ]
   },
-  plugins: [nodeResolve(), commonjs()]
+  plugins: [ nodeResolve(), commonjs() ]
 }

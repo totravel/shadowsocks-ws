@@ -139,7 +139,7 @@ wss.on('connection', (ws, req) => {
           ws.terminate()
           return
       }
-      if (address.length != 0) {
+      if (address.length !== 0) {
         payloads.push(address)
       }
       to = `${addr}:${port}`

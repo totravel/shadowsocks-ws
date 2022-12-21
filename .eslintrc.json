@@ -16,6 +16,7 @@
     "no-new": "off",
     "one-var": "off",
     "quote-props": "off",
-    "space-before-function-paren": "off"
+    "space-before-function-paren": "off",
+    "array-bracket-spacing": "off"
   }
 }

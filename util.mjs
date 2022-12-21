@@ -78,7 +78,7 @@ export async function lookup(nameserver, hostname) {
     const addresses = []
     const response = await new DohResolver(nameserver).query(hostname, 'A')
     for (const answer of response.answers) {
-      if (answer.type == 'A') {
+      if (answer.type === 'A') {
         addresses.push(answer.data)
       }
     }
