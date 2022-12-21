@@ -1,26 +1,28 @@
 
-import 'colors'
 import { isIP, createServer } from 'net'
 import http from 'http'
 import https from 'https'
 import { toString } from 'qrcode'
 import WebSocket, { createWebSocketStream } from 'ws'
-import DnsOverHttpResolver from 'dns-over-http-resolver'
-import { info as infolog } from 'console'
-import { loadFile, parseJSON, errorlog, warnlog, debuglog } from './helper.mjs'
+import { log } from 'console'
+import { errorlog, warnlog, infolog, debuglog, loadFile, parseJSON, lookup } from './util.mjs'
 
 (async () => {
-  infolog(loadFile('banner.txt'))
+  log(loadFile('banner.txt'))
 
   const config = parseJSON(loadFile('./config.json'))
   if (config === null) {
-    errorlog('failed to load config.json')
+    errorlog('failed to load config')
     process.exit(1)
   }
 
   const url = getURL(config)
-  infolog(await toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
-  infolog(`${url.underline}\n`)
+  if (config.show_qrcode) {
+    log(await toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
+  }
+  if (config.show_url) {
+    infolog(`URL: ${url.underline}`)
+  }
 
   const timeout = config.timeout
   const parsed = new URL(config.server)
@@ -46,52 +48,39 @@ import { loadFile, parseJSON, errorlog, warnlog, debuglog } from './helper.mjs'
   options.headers.Host = hostname
   options.servername = hostname // for tls
 
-  if (isIP(config.lookup)) {
-    infolog(`server running on host '${hostname}' (${config.lookup})`)
-    start(protocol, config.lookup, config.local_port, options)
+  if (isIP(config.nameserver)) {
+    infolog(`server running on host '${hostname}' (${config.nameserver})`)
+    start(protocol, config.nameserver, config.local_port, options)
     return
   }
 
   infolog(`resolving ${hostname}...`)
-  const resolver = new DnsOverHttpResolver()
-  resolver.setServers([config.lookup])
-  let resolved4 = [], resolved6 = [], resolved = []
-  try {
-    resolved4 = await resolver.resolve4(hostname)
-  } catch (err) {
-    warnlog(err.message)
-  }
-  try {
-    resolved6 = await resolver.resolve6(hostname)
-  } catch (err) {
-    warnlog(err.message)
-  }
-  resolved = [...resolved4, ...resolved6]
-  if (resolved.length === 0) {
-    errorlog(`failed to resolve host '${hostname}'`)
+  const addresses = await lookup(config.nameserver, hostname)
+  if (addresses.length === 0) {
+    errorlog(`failed to resolve host '${hostname}', no address available`)
     process.exit(1)
   }
-  debuglog(resolved)
+  debuglog(addresses)
 
   let min = Infinity, addr = null
-  for (const record of resolved) {
-    const atyp = isIP(record)
+  for (const address of addresses) {
+    const atyp = isIP(address)
     if (atyp) {
-      infolog(`trying ${record}...`)
-      options.host = record
+      infolog(`trying ${address}...`)
+      options.host = address
       let t = Date.now()
-      const msg = await attempt(protocol, options)
+      const msg = await test(protocol, options)
       t = Date.now() - t
       if (msg === 'OK') {
-        infolog(`connected ${record} in ${t}ms`.gray)
-        if (t < min) { min = t; addr = record }
+        infolog(`connected ${address} in ${t}ms`)
+        if (t < min) { min = t; addr = address }
         continue
       }
-      infolog(`failed to connect to ${record}: ${msg}`.gray)
+      warnlog(`failed to connect to ${address}: ${msg}`)
     }
   }
   if (addr === null) {
-    errorlog('failed to connect to server')
+    errorlog('failed to connect to server, no address available')
     process.exit(1)
   }
 
@@ -104,7 +93,7 @@ function getURL(config) {
   return 'ss://' + userinfo + '@' + config.local_address + ':' + config.local_port
 }
 
-function attempt(protocol, options) {
+function test(protocol, options) {
   return new Promise((resolve, reject) => {
     const req = (protocol === 'https:' ? https : http).request(options, (res) => {
       resolve(res.statusMessage)
@@ -133,9 +122,8 @@ function start(protocol, remote_host, local_port, options) {
     let wss = null
     const ws = new WebSocket(server_addr, options)
     ws.on('unexpected-response', (req, res) => {
-      debuglog(`HTTP response status code: ${res.statusCode}`)
       if (res.statusCode === 429) return
-      errorlog(`unexpected response received from server`)
+      errorlog(`unexpected response received from server, statusCode=${res.statusCode}`)
       process.exit(1)
     })
     ws.on('open', () => {
@@ -167,6 +155,6 @@ function start(protocol, remote_host, local_port, options) {
 
   server.listen(local_port, () => {
     infolog(`local listening on 0.0.0.0:${local_port}`)
-    infolog('press Ctrl+C to stop'.green)
+    infolog('press Ctrl+C to stop')
   })
 }

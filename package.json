@@ -1,6 +1,6 @@
 {
   "name": "shadowsocks-ws",
-  "version": "6.1.0",
+  "version": "6.2.0",
   "description": "Shadowsocks over WebSocket",
   "main": "server.min.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-terser": "^0.1.0",
     "colors": "^1.4.0",
-    "dns-over-http-resolver": "^2.1.1",
+    "dohjs": "^0.3.3",
     "qrcode": "^1.5.1",
     "rollup": "^3.7.4",
     "undici": "^5.14.0",

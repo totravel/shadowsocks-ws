@@ -1,15 +1,28 @@
 
 import 'colors'
-import { readFileSync } from 'fs'
-import { createConnection } from 'net'
-import { createHash } from 'crypto'
 import { error, warn, info, debug } from 'console'
+import { readFileSync } from 'fs'
+import { createHash } from 'crypto'
+import { createConnection } from 'net'
+import dohjs from 'dohjs'
+const { DohResolver } = dohjs
+
+export const errorlog = (...args) => error('ERROR'.red, ...args)
+
+export const warnlog  = (...args) => warn('WARN '.yellow, ...args)
+
+export const infolog  = (...args) => info('INFO '.green, ...args)
+
+export const debuglog = process.env.DEBUG === 'true'
+  ? (...args) => debug('DEBUG'.gray, ...args)
+  : () => null
 
 export function loadFile(path) {
   try {
     return readFileSync(path, { encoding: 'utf8' })
   } catch (err) {
-    return null
+    errorlog(`loadFile(): failed to load file, path='${path}': readFileSync(): ${err.message}`)
+    return ''
   }
 }
 
@@ -17,7 +30,8 @@ export function parseJSON(str) {
   try {
     return JSON.parse(str)
   } catch (err) {
-    return null
+    errorlog(`parseJSON(): failed to parse string: JSON.parse(): ${err.message}`)
+    return ''
   }
 }
 
@@ -59,12 +73,18 @@ export function inetNtop(buf) {
   return a.join(':')
 }
 
-export const errorlog = (msg, ...args) => error(`ERROR: ${msg}`.red, ...args)
-
-export const warnlog  = (msg, ...args) => warn(`WARNING: ${msg}`.yellow, ...args)
-
-export const infolog  = (msg, ...args) => info(`INFO: ${msg}`, ...args)
-
-export const debuglog = process.env.DEBUG === 'true'
-  ? (msg, ...args) => debug(`DEBUG: ${msg}`.gray, ...args)
-  : () => null
+export async function lookup(nameserver, hostname) {
+  try {
+    const addresses = []
+    const response = await new DohResolver(nameserver).query(hostname, 'A')
+    for (const answer of response.answers) {
+      if (answer.type == 'A') {
+        addresses.push(answer.data)
+      }
+    }
+    return addresses
+  } catch (err) {
+    errorlog(`lookup(): failed to resolve host, nameserver='${nameserver}', hostname='${hostname}': DohResolver.query(): ${err.message}`)
+    return []
+  }
+}

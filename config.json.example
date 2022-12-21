@@ -1,10 +1,12 @@
 {
-  "lookup": "https://doh.pub/dns-query",
-  "server": "https://*.example.com/",
+  "nameserver": "https://doh.pub/dns-query",
+  "server": "https://example.com/",
   "server_port": 80,
   "local_address": "127.0.0.1",
   "local_port": 8787,
   "password": "secret",
   "method": "aes-256-gcm",
-  "timeout": 5000
+  "timeout": 5000,
+  "show_qrcode": true,
+  "show_url": false
 }

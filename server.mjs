@@ -8,7 +8,7 @@ import { keySize, saltSize, tagSize, AEAD } from './aead.mjs'
 import {
   EVP_BytesToKey, connect, inetNtoa, inetNtop,
   errorlog, warnlog, infolog, debuglog
-} from './helper.mjs'
+} from './util.mjs'
 
 const dump = (from, to, stage) => `from=${from.blue} to=${to.cyan} stage=${stage.green}`
 

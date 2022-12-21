@@ -14,18 +14,9 @@ client <------> ss-local <---> ss-ws-local <-- gfw --> ss-ws-remote <---> target
 
 shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadowsocks for Windows][sfw] 等常规 Shadowsocks 客户端使用。shadowsocks-ws 客户端和服务器端之间使用 WebSocket 协议进行通信。shadowsocks-ws 服务器对外表现为一个 Web 服务器，可以用浏览器访问。
 
-shadowsocks-ws 兼容下列 Shadowsocks 客户端：
-
-- [Shadowsocks for Windows][sfw]
-- [Clash for Windows][cfw]
-- [SagerNet for Android][sn]
-- [shadowsocks-libev][ss-libev]
-- [go-shadowsocks2][go-ss2]
-- [shadowsocks-rust][ss-rust]
-
 ## 环境要求
 
-- [Node.js][nodejs] 16.16.0+
+- [Node.js][nodejs] 16+
 - [Windows Terminal][wt]
 - [Git for Windows][gfw]
 
@@ -82,22 +73,33 @@ npm i
 
 ```json
 {
-  "lookup": "https://doh.pub/dns-query",
-  "server": "https://*.example.com/",
+  "nameserver": "https://doh.pub/dns-query",
+  "server": "https://example.com/",
   "server_port": 80,
   "local_address": "127.0.0.1",
   "local_port": 8787,
   "password": "secret",
   "method": "aes-256-gcm",
-  "timeout": 5000
+  "timeout": 5000,
+  "show_qrcode": true,
+  "show_url": false
 }
 ```
 
-`lookup` 字段一般无须修改。下列取值供参考：
+如果启动客户端时提示域名解析失败，可以尝试修改 `nameserver` 字段。下列取值供参考：
 
 - DNSPod `https://doh.pub/dns-query`
-- AliDNS `https://dns.alidns.com/resolve`
-- 360DNS `https://doh.360.cn/query`
+- AliDNS `https://dns.alidns.com/dns-query`
+- 360DNS `https://doh.360.cn/dns-query`
+- Cisco `https://doh.opendns.com/dns-query`
+- AT&T `https://dohtrial.att.net/dns-query`
+- Quad9 `https://dns10.quad9.net/dns-query`
+- AdGuard `https://unfiltered.adguard-dns.com/dns-query`
+- bebasdns `https://dns.bebasid.com/dns-query`
+- AlekBergNl `https://dnsnl.alekberg.net/dns-query`
+- AlekBergSE `https://dnsse.alekberg.net/dns-query`
+- adfree `https://adfree.usableprivacy.net/query`
+- Control D `https://freedns.controld.com/p0`
 - Cloudflare `https://cloudflare-dns.com/dns-query`
 
 启动 shadowsocks-ws 客户端：
@@ -167,7 +169,7 @@ rules:
 
 ### shadowsocks-rust
 
-使用 shadowsocks-rust 需要另外准备一个配置文件，例如：
+另外再准备一个配置文件，例如：
 
 ```json
 {
@@ -180,7 +182,7 @@ rules:
 }
 ```
 
-然后用如下命令启动 shadowsocks-rust：
+然后用如下命令启动 [shadowsocks-rust][ss-rust]：
 
 ```bash
 ./sslocal -c config.json --log-without-time
@@ -198,7 +200,7 @@ rules:
 
 ### shadowsocks-ws 客户端提示所有 IP 地址都连接超时？
 
-先用浏览器访问服务器，确保服务器可以访问。再修改配置文件中的 `dns` 字段并重试。
+先用浏览器访问服务器，确保服务器可以访问。再修改配置文件中的 `nameserver` 字段并重试。
 
 ### 有支持 Shadowsocks 2022 的计划吗？
 
@@ -219,10 +221,10 @@ rules:
 ## 鸣谢
 
 - [websockets/ws][ws] Simple to use, blazing fast and thoroughly tested WebSocket client and server for Node.js
-- [vasco-santos/dns-over-http-resolver][dns-over-http-resolver] DNS over HTTP resolver 
+- [byu-imaal/dohjs][dohjs] DNS over HTTPS client for use in the browser
 - [Marak/colors][colors] get colors in your node.js console 
 - [soldair/qrcode][qrcode] qr code generator
-- [Shadowsocks for Windows][sfw] A C# port of shadowsocks 
+- [Shadowsocks for Windows][sfw] A C# port of shadowsocks
 - [Clash for Windows][cfw] clash for windows汉化版. 提供clash for windows的汉化版, 汉化补丁及汉化版安装程序
 - [Loyalsoldier/clash-rules][clash-rules] Clash Premium 规则集(RULE-SET)，兼容 ClashX Pro、Clash for Windows 客户端。
 - [SagerNet for Android][sn] The universal proxy toolchain for Android
@@ -231,7 +233,7 @@ rules:
 
 [MIT](LICENSE)
 
-[nodejs]: https://nodejs.dev/
+[nodejs]: https://nodejs.dev/en/download/
 [wt]: https://github.com/microsoft/terminal
 [gfw]: https://gitforwindows.org/
 
@@ -247,7 +249,7 @@ rules:
 [ss-rust]: https://github.com/shadowsocks/shadowsocks-rust
 
 [ws]: https://github.com/websockets/ws
-[dns-over-http-resolver]: https://github.com/vasco-santos/dns-over-http-resolver
+[dohjs]: https://github.com/byu-imaal/dohjs
 [colors]: https://github.com/Marak/colors.js
 [qrcode]: https://github.com/soldair/node-qrcode
 
