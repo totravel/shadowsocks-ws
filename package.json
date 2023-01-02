@@ -1,6 +1,6 @@
 {
   "name": "shadowsocks-ws",
-  "version": "6.2.0",
+  "version": "7.0.0",
   "description": "Shadowsocks over WebSocket",
   "main": "server.min.js",
   "scripts": {
@@ -18,8 +18,8 @@
   "bugs": "https://github.com/totravel/shadowsocks-ws/issues",
   "license": "MIT",
   "dependencies": {
-    "@rollup/plugin-commonjs": "^23.0.4",
-    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-terser": "^0.1.0",
     "colors": "^1.4.0",
     "dohjs": "^0.3.3",

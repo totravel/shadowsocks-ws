@@ -1,130 +1,44 @@
 
-import { isIP, createServer } from 'net'
-import http from 'http'
-import https from 'https'
+import { exit } from 'node:process'
+import http from 'node:http'
+import https from 'node:https'
+import { isIP, createServer } from 'node:net'
 import { toString } from 'qrcode'
 import WebSocket, { createWebSocketStream } from 'ws'
-import { log } from 'console'
-import { errorlog, warnlog, infolog, debuglog, loadFile, parseJSON, lookup } from './util.mjs'
+import { debuglog, infolog, warnlog, errorlog, readFile, lookup } from './util.mjs'
 
-(async () => {
-  log(loadFile('banner.txt'))
-
-  const config = parseJSON(loadFile('./config.json'))
-  if (config === null) {
-    errorlog('failed to load config')
-    process.exit(1)
-  }
-
-  const url = getURL(config)
-  if (config.show_qrcode) {
-    log(await toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
-  }
-  if (config.show_url) {
-    infolog(`URL: ${url.underline}`)
-  }
-
-  const timeout = config.timeout
-  const parsed = new URL(config.server)
-  const hostname = parsed.hostname
-  const protocol = parsed.protocol
-  const options = {
-    timeout,
-    origin: config.server, // for ws
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0) Gecko/20100101 Firefox/100.0',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-      'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
-      'Accept-Encoding': 'gzip, deflate, br'
-    }
-  }
-
-  if (isIP(hostname)) {
-    infolog(`server running on host '${hostname}'`)
-    start(protocol, hostname, config.local_port, options)
-    return
-  }
-
-  options.headers.Host = hostname
-  options.servername = hostname // for tls
-
-  if (isIP(config.nameserver)) {
-    infolog(`server running on host '${hostname}' (${config.nameserver})`)
-    start(protocol, config.nameserver, config.local_port, options)
-    return
-  }
-
-  infolog(`resolving ${hostname}...`)
-  const addresses = await lookup(config.nameserver, hostname)
-  if (addresses.length === 0) {
-    errorlog(`failed to resolve host '${hostname}', no address available`)
-    process.exit(1)
-  }
-  debuglog(addresses)
-
-  let min = Infinity, addr = null
-  for (const address of addresses) {
-    const atyp = isIP(address)
-    if (atyp) {
-      infolog(`trying ${address}...`)
-      options.host = address
-      let t = Date.now()
-      const msg = await test(protocol, options)
-      t = Date.now() - t
-      if (msg === 'OK') {
-        infolog(`connected ${address} in ${t}ms`)
-        if (t < min) { min = t; addr = address }
-        continue
-      }
-      warnlog(`failed to connect to ${address}: ${msg}`)
-    }
-  }
-  if (addr === null) {
-    errorlog('failed to connect to server, no address available')
-    process.exit(1)
-  }
-
-  infolog(`server running on host '${hostname}' (${addr})`)
-  start(protocol, addr, config.local_port, options)
-})()
-
-function getURL(config) {
-  const userinfo = Buffer.from(config.method + ':' + config.password).toString('base64')
-  return 'ss://' + userinfo + '@' + config.local_address + ':' + config.local_port
+function makeSsUrl(method, password, local_address, local_port) {
+  const userinfo = Buffer.from(method + ':' + password).toString('base64')
+  return 'ss://' + userinfo + '@' + local_address + ':' + local_port
 }
 
-function test(protocol, options) {
+function checkServer(url, options) {
   return new Promise((resolve, reject) => {
-    const req = (protocol === 'https:' ? https : http).request(options, (res) => {
-      resolve(res.statusMessage)
+    const { request } = url.protocol === 'https:' ? https : http
+    const req = request(url, options, (res) => {
+      if (res.statusCode === 204) {
+        resolve()
+      } else {
+        reject(new Error(`unexpected response: ${res.statusCode}`))
+      }
     })
-
-    req.on('timeout', () => {
-      req.destroy(new Error('timeout')) // 'error' event will be called
-    })
-
-    req.on('error', (err) => {
-      resolve(err.message)
-    })
-
+    req.on('timeout', () => req.destroy(new Error('timeout'))) // 'error' event will be called
+    req.on('error', reject)
     req.end()
   })
 }
 
-function start(protocol, remote_host, local_port, options) {
-  const prefix = protocol === 'https:' ? 'wss://' : 'ws://'
-  const server_addr = prefix + remote_host
-
+function startServer(url, options, localPort) {
   const server = createServer()
   server.on('connection', (client) => {
     debuglog(`client connected: ${client.remoteAddress}:${client.remotePort}`)
 
     let wss = null
-    const ws = new WebSocket(server_addr, options)
+    const ws = new WebSocket(url, options)
     ws.on('unexpected-response', (req, res) => {
       if (res.statusCode === 429) return
-      errorlog(`unexpected response received from server, statusCode=${res.statusCode}`)
-      process.exit(1)
+      errorlog(`unexpected response (${res.statusCode})`)
+      exit(1)
     })
     ws.on('open', () => {
       debuglog('connection opened')
@@ -150,11 +64,104 @@ function start(protocol, remote_host, local_port, options) {
 
   server.on('error', (err) => {
     errorlog(err.message)
-    process.exit(1)
+    exit(1)
   })
 
-  server.listen(local_port, () => {
-    infolog(`local listening on 0.0.0.0:${local_port}`)
+  server.listen(localPort, () => {
+    infolog(`local server listening on 0.0.0.0:${localPort}`)
     infolog('press Ctrl+C to stop')
   })
+}
+
+
+console.log(readFile('./banner.txt'))
+
+let config = null
+try {
+  config = JSON.parse(readFile('./config.json'))
+} catch (err) {
+  errorlog(`failed to load configurations: ${err.message}`)
+  exit(1)
+}
+
+if (config.show_qrcode || config.show_url) {
+  const url = makeSsUrl(config.method, config.password, config.local_address, config.local_port)
+  if (config.show_qrcode) {
+    console.log(await toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
+  }
+  if (config.show_url) {
+    infolog(`URL: ${url.underline}`)
+  }
+}
+
+const homeUrl = new URL(config.server)
+const serverUrl = new URL(homeUrl)
+switch (homeUrl.protocol) {
+  case 'https:':
+    serverUrl.protocol = 'wss:'
+    break
+  case 'http:':
+    serverUrl.protocol = 'ws:'
+    break
+  default:
+    errorlog(`invalid URL: ${config.server}`)
+    exit(1)
+}
+
+const options = {
+  timeout: config.timeout,
+  origin: homeUrl.origin,
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0) Gecko/20100101 Firefox/100.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
+    'Accept-Encoding': 'gzip, deflate, br'
+  }
+}
+
+let address = []
+if (isIP(serverUrl.hostname)) {
+  address.push(serverUrl.hostname)
+} else {
+  options.headers.Host = serverUrl.hostname
+  options.servername = serverUrl.hostname // for SNI (Server Name Indication) TLS extension
+
+  if (isIP(config.server_address)) {
+    address.push(config.server_address)
+  } else {
+    try {
+      infolog(`resolving ${serverUrl.hostname}...`)
+      address = await lookup(serverUrl.hostname, config.nameserver)
+    } catch (err) {
+      errorlog(`failed to resolve hostname: ${err.message}`)
+      exit(1)
+    }
+  }
+}
+
+let elapsed = Infinity
+const checkUrl = new URL('/generate_204', homeUrl)
+for (const addr of address) {
+  try {
+    infolog(`trying ${addr}...`)
+    checkUrl.hostname = addr
+    const start = Date.now()
+    await checkServer(checkUrl, options)
+    const end = Date.now()
+    const t = end - start
+    if (t < elapsed) {
+      elapsed = t
+      serverUrl.hostname = addr
+    }
+    infolog(`connected ${addr} in ${t}ms`)
+  } catch (err) {
+    warnlog(`cannot connect to ${addr}: ${err.message}`)
+  }
+}
+
+if (elapsed < Infinity) {
+  infolog(`remote server running on host '${homeUrl.hostname}' (${serverUrl.hostname})`)
+  startServer(serverUrl, options, config.local_port)
+} else {
+  errorlog('server cannot be reached')
 }

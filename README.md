@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/github/license/totravel/shadowsocks-ws)
 ![GitHub last commit](https://img.shields.io/github/last-commit/totravel/shadowsocks-ws)
 
-shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，既可以部署在 [Heroku][heroku] 和 [Railway][railway] 等 PaaS 平台，也可以部署在 VPS 上。
+shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，既可以部署在 [Heroku][heroku] 和 [Railway][railway] 等 PaaS 平台，也可以部署在常规的 VPS 上。
 
 ```
         socks5            tcp               websocket                tcp
@@ -22,7 +22,7 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ## 服务器部署
 
-shadowsocks-ws 服务器使用的加密方案、密码和端口号分别可以通过环境变量 `METHOD`、`PASS` 和 `PORT` 设置。目前，shadowsocks-ws 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密方案。
+shadowsocks-ws 服务器使用的加密方案、密码和端口号分别由环境变量 `METHOD`、`PASS` 和 `PORT` 决定。目前，shadowsocks-ws 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密方案。
 
 ### PaaS
 
@@ -61,6 +61,10 @@ npm start
 
 ## 客户端配置
 
+用户需要在本地同时运行 shadowsocks-ws 客户端和常规 Shadowsocks 客户端。
+
+### shadowsocks-ws 客户端
+
 克隆代码，安装依赖：
 
 ```bash
@@ -69,13 +73,13 @@ cd shadowsocks-ws
 npm i
 ```
 
-将配置文件的模板 `config.json.example` 重命名为 `config.json` 并修改 `remote_address`、`password` 和 `method` 三个字段。
+将配置文件的模板 `config.json.example` 重命名为 `config.json` 并修改 `server`、`password` 和 `method` 三个字段。
 
 ```json
 {
-  "nameserver": "https://doh.pub/dns-query",
+  "nameserver": "https://doh.opendns.com/dns-query",
   "server": "https://example.com/",
-  "server_port": 80,
+  "server_address": "",
   "local_address": "127.0.0.1",
   "local_port": 8787,
   "password": "secret",
@@ -86,14 +90,20 @@ npm i
 }
 ```
 
-如果启动客户端时提示域名解析失败，可以尝试修改 `nameserver` 字段。下列取值供参考：
+如果服务器的 IP 地址固定，可以将 `server_address` 字段修改为服务器的 IP 地址。
+
+如果服务器的域名解析失败，可以尝试修改 `nameserver` 字段。下列取值供参考：
 
 - DNSPod `https://doh.pub/dns-query`
 - AliDNS `https://dns.alidns.com/dns-query`
 - 360DNS `https://doh.360.cn/dns-query`
-- Cisco `https://doh.opendns.com/dns-query`
-- AT&T `https://dohtrial.att.net/dns-query`
+- Yeti `https://dns.ipv6dns.com/dns-query`
 - Quad9 `https://dns10.quad9.net/dns-query`
+- Cisco `https://doh.opendns.com/dns-query`
+- Cloudflare `https://1.1.1.1/dns-query`
+- Cloudflare `https://1.0.0.1/dns-query`
+- AT&T `https://dohtrial.att.net/dns-query`
+- IIJ `https://public.dns.iij.jp/dns-query`
 - AdGuard `https://unfiltered.adguard-dns.com/dns-query`
 - bebasdns `https://dns.bebasid.com/dns-query`
 - AlekBergNl `https://dnsnl.alekberg.net/dns-query`
@@ -108,9 +118,11 @@ npm i
 npm run local
 ```
 
+### 常规 Shadowsocks 客户端
+
 下文根据需要选择性阅读。
 
-### Shadowsocks for Windows
+#### Shadowsocks for Windows
 
 打开 [Shadowsocks for Windows][sfw]：
 
@@ -118,9 +130,9 @@ npm run local
     1. 服务器 > 扫描屏幕上的二维码
     1. 系统代理 > PAC 模式
 
-### Clash for Windows
+#### Clash for Windows
 
-将配置文件 `clash.yaml.example` 重命名为 `clash.yaml` 并修改 `cipher` 和 `password` 两个字段。
+将配置文件的模板 `clash.yaml.example` 重命名为 `clash.yaml` 并修改 `cipher` 和 `password` 两个字段。
 
 ```yaml
 proxies:
@@ -149,7 +161,7 @@ rules:
 1. 主页 > 打开「系统代理」开关
 1. 代理 > 规则
 
-#### 获取和使用规则集
+##### 获取和使用规则集
 
 执行脚本 `ruleset.sh` 下载 [Clash 规则集][clash-rules]。
 
@@ -157,9 +169,9 @@ rules:
 ./ruleset.sh
 ```
 
-使用规则集的配置文件的模板为 `blacklist.yaml.example` 或 `whitelist.yaml.example`。
+使用规则集的配置文件的模板为 `blacklist.yaml.example` 或 `whitelist.yaml.example`。它们的用法与上述配置文件相同。
 
-### SagerNet for Android
+#### SagerNet for Android
 
 将手机和电脑连接至同一网络，打开 [SagerNet for Android][sn]：
 
@@ -167,7 +179,7 @@ rules:
 1. 修改服务器配置 > 将「服务器」字段由 `127.0.0.1` 修改为电脑的 IP 地址
 1. 右下角 > 连接
 
-### shadowsocks-rust
+#### shadowsocks-rust
 
 另外再准备一个配置文件，例如：
 
@@ -190,9 +202,9 @@ rules:
 
 ## 常见问题
 
-### 用 Shadowsocks 客户端连接 shadowsocks-ws 服务器失败？
+### 用常规 Shadowsocks 客户端连接 shadowsocks-ws 服务器失败？
 
-不能直接用 Shadowsocks 客户端连接 shadowsocks-ws 服务器。要使用 shadowsocks-ws，必须先在本地运行 shadowsocks-ws 客户端，再让 Shadowsocks 客户端连接到 shadowsocks-ws 客户端。具体步骤见 [客户端配置](#客户端配置)。
+不能直接用常规 Shadowsocks 客户端连接 shadowsocks-ws 服务器。要使用 shadowsocks-ws，必须先在本地运行 shadowsocks-ws 客户端，再让常规 Shadowsocks 客户端连接到 shadowsocks-ws 客户端。具体步骤见 [客户端配置](#客户端配置)。
 
 ### 如何确认 shadowsocks-ws 服务器已经部署成功并且可以正常访问？
 

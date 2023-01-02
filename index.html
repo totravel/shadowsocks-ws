@@ -11,9 +11,18 @@
       <h1 class="display-4 user-select-none">You're free as a bird!</h1>
     </div>
     <script>
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('bg-dark', 'text-light');
+      function updateScheme(e) {
+        if (e.matches) {
+          document.body.classList.add('bg-dark', 'text-light')
+        } else {
+          document.body.classList.remove('bg-dark', 'text-light')
+        }
       }
+
+      const media = window.matchMedia('(prefers-color-scheme: dark)')
+      media.addEventListener('change', updateScheme)
+
+      updateScheme(media)
     </script>
   </body>
 </html>

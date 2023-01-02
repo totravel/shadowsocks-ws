@@ -11,5 +11,5 @@ export default {
     sourcemap: true,
     plugins: [ terser() ]
   },
-  plugins: [ nodeResolve(), commonjs() ]
+  plugins: [ nodeResolve({ preferBuiltins: true }), commonjs() ]
 }

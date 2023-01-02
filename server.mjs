@@ -1,52 +1,78 @@
 
 import 'colors'
-import { createReadStream } from 'fs'
-import { createServer } from 'http'
-import { hkdfSync, randomBytes } from 'crypto'
+import { createReadStream } from 'node:fs'
+import { createServer } from 'node:http'
+import { hkdfSync, randomBytes } from 'node:crypto'
 import WebSocket, { WebSocketServer } from 'ws'
-import { keySize, saltSize, tagSize, AEAD } from './aead.mjs'
+import { AEAD } from './aead.mjs'
 import {
-  EVP_BytesToKey, connect, inetNtoa, inetNtop,
-  errorlog, warnlog, infolog, debuglog
+  getEnv, debuglog, infolog, warnlog, errorlog,
+  EVP_BytesToKey, connect, inet_ntoa, inet_ntop
 } from './util.mjs'
-
-const dump = (from, to, stage) => `from=${from.blue} to=${to.cyan} stage=${stage.green}`
-
-const METHOD = process.env.METHOD === 'aes-256-gcm' ? 'aes-256-gcm' : 'chacha20-poly1305'
-const PASS   = process.env.PASS    || 'secret'
-const PORT   = process.env.PORT    ||  80
-
-const KEY_SIZE  = keySize[METHOD]
-const SALT_SIZE = saltSize[METHOD]
-const TAG_SIZE  = tagSize[METHOD]
 
 const CLOSED  = 'closed'
 const OPENING = 'opening'
 const OPEN    = 'open'
 const WRITING = 'writing'
 
-const KEY = EVP_BytesToKey(PASS, KEY_SIZE).key
+const dump = (from, to, stage) => `from=${from.blue} to=${to.cyan} stage=${stage.green}`
+
+const METHOD = getEnv('METHOD', 'chacha20-poly1305', [
+  'aes-256-gcm',
+  'chacha20-poly1305'
+])
+const PASS   = getEnv('PASS', 'secret')
+const PORT   = getEnv('PORT', 80)
+
+const { keySize: KEY_SIZE, saltSize: SALT_SIZE, tagSize: TAG_SIZE } = AEAD.getSize(METHOD)
+const { key: KEY } = EVP_BytesToKey(PASS, KEY_SIZE)
 
 const server = createServer((req, res) => {
-  res.statusCode = 200
-  res.setHeader('Content-Type', 'text/html')
-  createReadStream('./index.html').pipe(res)
+  const { pathname } = new URL(req.url, `http://${req.headers.host}`)
+  switch (pathname) {
+    case '/':
+    case '/index.html':
+      res.statusCode = 200
+      res.setHeader('Content-Type', 'text/html')
+      createReadStream('./index.html').pipe(res)
+      break
+
+    case '/generate_204':
+      res.statusCode = 204
+      res.setHeader('Connection', 'close')
+      res.end()
+      break
+
+    default:
+      res.statusCode = 302
+      res.setHeader('Location', '/')
+      res.end()
+      break
+  }
+  warnlog(`request: method='${req.method}' url='${req.url}' user-agent='${req.headers['user-agent']}'`)
 })
 
 const wss = new WebSocketServer({ server })
 
 wss.on('connection', (ws, req) => {
-  const from = `${req.socket.remoteAddress}:${req.socket.remotePort}`
-  debuglog(`client connected: ${from}`)
-
-  let rx = [], tx = []
-  let decipher = null, cipher = null
-  let chunkIndex = 0
+  // decryption context
+  let rx = [] // received bytes waiting to be decrypted
+  let decipher = null
   let cipherTextSize = 2
+  let chunkIndex = 0
   const payloads = []
+
+  // encryption context
+  let tx = [] // encrypted chunks waiting to be sent
+  let cipher = null
+
+  // server context
   let stage = CLOSED
-  let to = 'unknown'
-  let remote = null
+  const from = `${req.socket.remoteAddress}:${req.socket.remotePort}` // client address
+  let to = 'unknown' // target address
+  let remote = null // target socket
+
+  debuglog(`client connected: ${from}`)
 
   ws.on('message', async (data) => {
     // retrieve bytes received last time
@@ -100,7 +126,7 @@ wss.on('connection', (ws, req) => {
       } else { // current chunk is payload chunk
         cipherTextSize = 2
         payloads.push(plainText)
-        debuglog('payload decrypted')
+        debuglog(`payload decrypted: ${plainText.length} bytes`)
       }
       chunkIndex++
     }
@@ -125,12 +151,12 @@ wss.on('connection', (ws, req) => {
           address = address.subarray(4 + address[1])
           break
         case 1: // IPv4
-          addr = inetNtoa(address.subarray(1, 5))
+          addr = inet_ntoa(address.subarray(1, 5))
           port = address.readUInt16BE(5)
           address = address.subarray(7)
           break
         case 4: // IPv6
-          addr = inetNtop(address.subarray(1, 17))
+          addr = inet_ntop(address.subarray(1, 17))
           port = address.readUInt16BE(17)
           address = address.subarray(19)
           break
