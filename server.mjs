@@ -44,9 +44,9 @@ const server = createServer((req, res) => {
       break
 
     default:
-      res.statusCode = 302
-      res.setHeader('Location', '/')
-      res.end()
+      res.statusCode = 404
+      res.setHeader('Content-Type', 'text/html')
+      createReadStream('./404.html').pipe(res)
       break
   }
   warnlog(`request: method='${req.method}' url='${req.url}' user-agent='${req.headers['user-agent']}'`)

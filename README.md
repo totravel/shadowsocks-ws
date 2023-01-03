@@ -169,7 +169,7 @@ rules:
 ./ruleset.sh
 ```
 
-使用规则集的配置文件的模板为 `blacklist.yaml.example` 或 `whitelist.yaml.example`。它们的用法与上述配置文件相同。
+使用规则集的配置文件的模板为 `blacklist.yaml.example` 或 `whitelist.yaml.example`。它们的用法与 `clash.yaml.example` 相同。
 
 #### SagerNet for Android
 
