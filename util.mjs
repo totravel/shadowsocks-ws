@@ -47,7 +47,10 @@ export function getEnv(name, defaultValue, range = []) {
   return defaultValue
 }
 
-export const debuglog = getEnv('DEBUG', false)
+export const NODE_ENV = getEnv('NODE_ENV', 'production', ['production', 'development'])
+export const APP_DEBUG = NODE_ENV === 'development'
+
+export const debuglog = APP_DEBUG
   ? (...args) => debug('DEBUG'.gray, ...args)
   : () => null
 

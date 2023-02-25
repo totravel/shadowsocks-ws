@@ -1,8 +1,12 @@
 
 import 'colors'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createReadStream } from 'node:fs'
 import { createServer } from 'node:http'
 import { hkdfSync, randomBytes } from 'node:crypto'
+import express from 'express'
+import { createProxyMiddleware } from 'http-proxy-middleware'
 import WebSocket, { WebSocketServer } from 'ws'
 import { AEAD } from './aead.mjs'
 import {
@@ -10,12 +14,19 @@ import {
   EVP_BytesToKey, connect, inet_ntoa, inet_ntop
 } from './util.mjs'
 
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+
 const CLOSED  = 'closed'
 const OPENING = 'opening'
 const OPEN    = 'open'
 const WRITING = 'writing'
 
+
 const dump = (from, to, stage) => `from=${from.blue} to=${to.cyan} stage=${stage.green}`
+
 
 const METHOD = getEnv('METHOD', 'chacha20-poly1305', [
   'aes-256-gcm',
@@ -23,36 +34,42 @@ const METHOD = getEnv('METHOD', 'chacha20-poly1305', [
 ])
 const PASS   = getEnv('PASS', 'secret')
 const PORT   = getEnv('PORT', 80)
+const PROXY  = getEnv('PROXY', '')
 
 const { keySize: KEY_SIZE, saltSize: SALT_SIZE, tagSize: TAG_SIZE } = AEAD.getSize(METHOD)
 const { key: KEY } = EVP_BytesToKey(PASS, KEY_SIZE)
 
-const server = createServer((req, res) => {
-  const { pathname } = new URL(req.url, `http://${req.headers.host}`)
-  switch (pathname) {
-    case '/':
-    case '/index.html':
-      res.statusCode = 200
-      res.setHeader('Content-Type', 'text/html')
-      createReadStream('./index.html').pipe(res)
-      break
 
-    case '/generate_204':
-      res.statusCode = 204
-      res.setHeader('Connection', 'close')
-      res.end()
-      break
+const app = express()
+app.disable('x-powered-by')
 
-    default:
-      res.statusCode = 404
-      res.setHeader('Content-Type', 'text/html')
-      createReadStream('./404.html').pipe(res)
-      break
-  }
-  warnlog(`request: method='${req.method}' url='${req.url}' user-agent='${req.headers['user-agent']}'`)
+
+app.get('/generate_204', (req, res) => {
+  res.set('Connection', 'close')
+  res.status(204)
+  res.end()
 })
 
+
+if (PROXY === '') {
+  app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html')
+  })
+
+  app.use((req, res, next) => {
+    res.status(404).sendFile(__dirname + '/404.html')
+  })
+} else {
+  app.use(createProxyMiddleware('/', {
+    target: PROXY,
+    changeOrigin: true,
+  }))
+}
+
+
+const server = createServer(app)
 const wss = new WebSocketServer({ server })
+
 
 wss.on('connection', (ws, req) => {
   // decryption context
@@ -237,5 +254,6 @@ wss.on('connection', (ws, req) => {
     decipher = cipher = rx = tx = null
   })
 })
+
 
 server.listen(PORT, () => infolog(`server running at http://0.0.0.0:${PORT}/`))

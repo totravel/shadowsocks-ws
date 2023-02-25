@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.staticfile.org/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <title>Welcome!</title>
+    <title>Home</title>
   </head>
   <body>
     <div class="vh-100 d-flex justify-content-center align-items-center">
       <h1 class="display-4 user-select-none">You're free as a bird!</h1>
     </div>
     <script>
-      function updateScheme(e) {
+      function updateColorScheme(e) {
         if (e.matches) {
           document.body.classList.add('bg-dark', 'text-light')
         } else {
@@ -20,9 +20,9 @@
       }
 
       const media = window.matchMedia('(prefers-color-scheme: dark)')
-      media.addEventListener('change', updateScheme)
+      media.addEventListener('change', updateColorScheme)
 
-      updateScheme(media)
+      updateColorScheme(media)
     </script>
   </body>
 </html>

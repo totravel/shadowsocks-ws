@@ -70,7 +70,7 @@ npm start
 ```bash
 git clone https://github.com/totravel/shadowsocks-ws.git
 cd shadowsocks-ws
-npm i
+npm i --no-optional
 ```
 
 将配置文件的模板 `config.json.example` 重命名为 `config.json` 并修改 `server`、`password` 和 `method` 三个字段。
@@ -79,7 +79,7 @@ npm i
 {
   "nameserver": "https://doh.opendns.com/dns-query",
   "server": "https://example.com/",
-  "server_address": "",
+  "server_address": [],
   "local_address": "127.0.0.1",
   "local_port": 8787,
   "password": "secret",
@@ -233,6 +233,8 @@ rules:
 ## 鸣谢
 
 - [websockets/ws][ws] Simple to use, blazing fast and thoroughly tested WebSocket client and server for Node.js
+- [expressjs/express][ws] Fast, unopinionated, minimalist web framework for node.
+- [chimurai/http-proxy-middleware][ws] The one-liner node.js http-proxy middleware for connect, express, next.js and more
 - [byu-imaal/dohjs][dohjs] DNS over HTTPS client for use in the browser
 - [Marak/colors][colors] get colors in your node.js console 
 - [soldair/qrcode][qrcode] qr code generator
@@ -261,6 +263,8 @@ rules:
 [ss-rust]: https://github.com/shadowsocks/shadowsocks-rust
 
 [ws]: https://github.com/websockets/ws
+[express]: https://expressjs.com/
+[proxy]: https://github.com/chimurai/http-proxy-middleware
 [dohjs]: https://github.com/byu-imaal/dohjs
 [colors]: https://github.com/Marak/colors.js
 [qrcode]: https://github.com/soldair/node-qrcode
