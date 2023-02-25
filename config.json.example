@@ -1,7 +1,7 @@
 {
   "nameserver": "https://doh.opendns.com/dns-query",
   "server": "https://example.com/",
-  "server_address": "",
+  "server_address": [],
   "local_address": "127.0.0.1",
   "local_port": 8787,
   "password": "secret",
