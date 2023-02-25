@@ -1,6 +1,6 @@
 {
   "name": "shadowsocks-ws",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "description": "Shadowsocks over WebSocket",
   "main": "server.min.js",
   "scripts": {

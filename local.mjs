@@ -126,7 +126,7 @@ if (isIP(serverUrl.hostname)) {
   options.headers.Host = serverUrl.hostname
   options.servername = serverUrl.hostname // for SNI (Server Name Indication) TLS extension
 
-  if (config.server_address) {
+  if (config.server_address.length > 0) {
     address = config.server_address
   } else {
     try {
