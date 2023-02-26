@@ -9,6 +9,10 @@
     "PASS": {
       "description": "Your password.",
       "value": "secret"
+    },
+    "PROXY": {
+      "description": "Target host to proxy to.",
+      "value": ""
     }
   }
 }

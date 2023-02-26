@@ -44,6 +44,7 @@ export function getEnv(name, defaultValue, range = []) {
       }
     }
   }
+  env[name] = defaultValue
   return defaultValue
 }
 

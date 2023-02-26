@@ -24,7 +24,7 @@ shadowsocks-ws 客户端（`ss-ws-local`）和 shadowsocks-ws 服务器（`ss-ws
 
 作为一个 Shadowsocks 服务器，shadowsocks-ws 服务器使用的加密方案、密码和端口号分别由环境变量 `METHOD`、`PASS` 和 `PORT` 决定。目前，shadowsocks-ws 服务器仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密方案。
 
-作为一个支持反向代理的 Web 服务器，shadowsocks-ws 服务器默认使用根目录下的 `index.html` 作为网站主页。如果用环境变量 `PROXY` 指定了一个网站，shadowsocks-ws 服务器就会成为那个网站的反向代理，从而伪装成那个网站。
+作为一个支持反向代理的 Web 服务器，shadowsocks-ws 服务器默认使用根目录下的 `index.html` 作为网站主页。如果使用环境变量 `PROXY` 指定了一个网站，shadowsocks-ws 服务器就会成为那个网站的反向代理，从而伪装成那个网站。
 
 ### PaaS
 
@@ -38,7 +38,7 @@ Railway
 
 ### VPS
 
-获取 shadowsocks-ws 的代码，安装 shadowsocks-ws 依赖的第三方库：
+获取 shadowsocks-ws 的代码，安装 shadowsocks-ws 服务器依赖的第三方库：
 
 ```bash
 git clone https://github.com/totravel/shadowsocks-ws.git
@@ -54,7 +54,7 @@ export PASS=secret
 export PORT=80
 ```
 
-设置 shadowsocks-ws 服务器代理的网站：
+如有需要，可以设置反向代理的目标网站：
 
 ```bash
 export PROXY='https://github.com'
@@ -73,7 +73,7 @@ npm start
 
 ### shadowsocks-ws 客户端
 
-获取 shadowsocks-ws 的代码，安装 shadowsocks-ws 依赖的第三方库：
+获取 shadowsocks-ws 的代码，安装 shadowsocks-ws 客户端依赖的第三方库：
 
 ```bash
 git clone https://github.com/totravel/shadowsocks-ws.git
@@ -102,23 +102,23 @@ npm i --no-optional
 
 `nameserver` 字段的值必须是 DoH 服务器的地址。下列取值供参考：
 
-- DNSPod `https://doh.pub/dns-query`
-- AliDNS `https://dns.alidns.com/dns-query`
-- 360DNS `https://doh.360.cn/dns-query`
-- Yeti `https://dns.ipv6dns.com/dns-query`
-- Quad9 `https://dns10.quad9.net/dns-query`
-- Cisco `https://doh.opendns.com/dns-query`
-- Cloudflare `https://1.1.1.1/dns-query`
-- Cloudflare `https://1.0.0.1/dns-query`
+- [DNSPod](https://www.dnspod.cn/) `https://doh.pub/dns-query`
+- [AliDNS](https://alidns.com/) `https://dns.alidns.com/dns-query`
+- [360DNS](https://sdns.360.net/) `https://doh.360.cn/dns-query`
+- [Yeti](https://www.ipv6dns.com/) `https://dns.ipv6dns.com/dns-query`
+- [Quad9](https://www.quad9.net/) `https://dns10.quad9.net/dns-query`
+- [Cisco OpenDNS](https://www.opendns.com/) `https://doh.opendns.com/dns-query`
+- [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/) `https://1.1.1.1/dns-query`
+- [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/) `https://1.0.0.1/dns-query`
 - AT&T `https://dohtrial.att.net/dns-query`
 - IIJ `https://public.dns.iij.jp/dns-query`
-- AdGuard `https://unfiltered.adguard-dns.com/dns-query`
-- bebasdns `https://dns.bebasid.com/dns-query`
-- AlekBergNl `https://dnsnl.alekberg.net/dns-query`
-- AlekBergSE `https://dnsse.alekberg.net/dns-query`
-- adfree `https://adfree.usableprivacy.net/query`
-- Control D `https://freedns.controld.com/p0`
-- Cloudflare `https://cloudflare-dns.com/dns-query`
+- [AdGuard](https://adguard-dns.io) `https://unfiltered.adguard-dns.com/dns-query`
+- [bebasdns](https://github.com/bebasid/bebasdns) `https://dns.bebasid.com/dns-query`
+- [AlekBergNl](https://alekberg.net/) `https://dnsnl.alekberg.net/dns-query`
+- [AlekBergSE](https://alekberg.net/) `https://dnsse.alekberg.net/dns-query`
+- [adfree](https://usableprivacy.com/) `https://adfree.usableprivacy.net/query`
+- [Control D](https://controld.com/) `https://freedns.controld.com/p0`
+- [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/) `https://cloudflare-dns.com/dns-query`
 
 启动 shadowsocks-ws 客户端：
 
