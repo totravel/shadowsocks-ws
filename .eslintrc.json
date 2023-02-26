@@ -3,8 +3,8 @@
     "browser": true,
     "es2021": true
   },
-  "extends": [
-    "standard"
+  "extends": "standard",
+  "overrides": [
   ],
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -17,6 +17,7 @@
     "one-var": "off",
     "quote-props": "off",
     "space-before-function-paren": "off",
-    "array-bracket-spacing": "off"
+    "array-bracket-spacing": "off",
+    "no-multiple-empty-lines": "off"
   }
 }

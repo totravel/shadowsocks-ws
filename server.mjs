@@ -2,7 +2,6 @@
 import 'colors'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createReadStream } from 'node:fs'
 import { createServer } from 'node:http'
 import { hkdfSync, randomBytes } from 'node:crypto'
 import express from 'express'
@@ -62,7 +61,7 @@ if (PROXY === '') {
 } else {
   app.use(createProxyMiddleware('/', {
     target: PROXY,
-    changeOrigin: true,
+    changeOrigin: true
   }))
 }
 

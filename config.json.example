@@ -1,6 +1,6 @@
 {
   "nameserver": "https://doh.opendns.com/dns-query",
-  "server": "https://example.com/",
+  "server": "https://*.up.railway.app/",
   "server_address": [],
   "local_address": "127.0.0.1",
   "local_port": 8787,

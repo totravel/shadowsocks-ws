@@ -18,7 +18,7 @@ files=(
   applications
 )
 
-url=https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release/
+url=https://raw.githubusercontent.com/Loyalsoldier/clash-rules/release
 
 if [ ! -d ~/.config/clash ]; then
   echo requires clash installed.
@@ -29,9 +29,13 @@ if [ ! -d ~/.config/clash/ruleset ]; then
   mkdir ~/.config/clash/ruleset
 fi
 
-for file in ${files[@]}; do
-  echo downloading ${file}.yaml...
-  curl ${url}${file}.txt \
+count=${#files[@]}
+i=0
+for file in ${files[@]}
+do
+  i=$[$i + 1]
+  echo [$i/$count] Downloading ${file}.yaml
+  curl ${url}/${file}.txt \
     -s -S -k \
     -x socks5h://127.0.0.1:7890 \
     -o ~/.config/clash/ruleset/${file}.yaml

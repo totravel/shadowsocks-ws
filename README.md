@@ -12,7 +12,7 @@ client <------> ss-local <---> ss-ws-local <-- gfw --> ss-ws-remote <---> target
                 encrypt                                decrypt
 ```
 
-shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadowsocks for Windows][sfw] 等常规 Shadowsocks 客户端使用。shadowsocks-ws 客户端和服务器端之间使用 WebSocket 协议进行通信。shadowsocks-ws 服务器对外表现为一个 Web 服务器，可以用浏览器访问。
+shadowsocks-ws 客户端（`ss-ws-local`）和 shadowsocks-ws 服务器（`ss-ws-remote`）之间使用 WebSocket 协议进行通信。shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadowsocks for Windows][sfw] 等常规 Shadowsocks 客户端（`ss-local`）使用。shadowsocks-ws 服务器不仅是一个 Shadowsocks 服务器，还是一个支持反向代理的 Web 服务器，可以伪装成某个网站。
 
 ## 环境要求
 
@@ -22,7 +22,9 @@ shadowsocks-ws 客户端只负责转发经过加密的流量，须配合 [Shadow
 
 ## 服务器部署
 
-shadowsocks-ws 服务器使用的加密方案、密码和端口号分别由环境变量 `METHOD`、`PASS` 和 `PORT` 决定。目前，shadowsocks-ws 仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密方案。
+作为一个 Shadowsocks 服务器，shadowsocks-ws 服务器使用的加密方案、密码和端口号分别由环境变量 `METHOD`、`PASS` 和 `PORT` 决定。目前，shadowsocks-ws 服务器仅支持 `chacha20-ietf-poly1305` 和 `aes-256-gcm` 两种加密方案。
+
+作为一个支持反向代理的 Web 服务器，shadowsocks-ws 服务器默认使用根目录下的 `index.html` 作为网站主页。如果用环境变量 `PROXY` 指定了一个网站，shadowsocks-ws 服务器就会成为那个网站的反向代理，从而伪装成那个网站。
 
 ### PaaS
 
@@ -36,7 +38,7 @@ Railway
 
 ### VPS
 
-克隆代码，安装依赖：
+获取 shadowsocks-ws 的代码，安装 shadowsocks-ws 依赖的第三方库：
 
 ```bash
 git clone https://github.com/totravel/shadowsocks-ws.git
@@ -44,7 +46,7 @@ cd shadowsocks-ws
 npm i
 ```
 
-设置加密方案、密码和端口号：
+设置 shadowsocks-ws 服务器使用的加密方案、密码和端口号：
 
 ```bash
 export METHOD=aes-256-gcm
@@ -52,7 +54,13 @@ export PASS=secret
 export PORT=80
 ```
 
-构建并启动：
+设置 shadowsocks-ws 服务器代理的网站：
+
+```bash
+export PROXY='https://github.com'
+```
+
+生成并启动 shadowsocks-ws 服务器：
 
 ```bash
 npm run build
@@ -65,7 +73,7 @@ npm start
 
 ### shadowsocks-ws 客户端
 
-克隆代码，安装依赖：
+获取 shadowsocks-ws 的代码，安装 shadowsocks-ws 依赖的第三方库：
 
 ```bash
 git clone https://github.com/totravel/shadowsocks-ws.git
@@ -73,12 +81,12 @@ cd shadowsocks-ws
 npm i --no-optional
 ```
 
-将配置文件的模板 `config.json.example` 重命名为 `config.json` 并修改 `server`、`password` 和 `method` 三个字段。
+将 shadowsocks-ws 客户端的配置文件的模板 `config.json.example` 重命名为 `config.json` 并修改其中的 `server`、`password` 和 `method` 三个字段。
 
 ```json
 {
   "nameserver": "https://doh.opendns.com/dns-query",
-  "server": "https://example.com/",
+  "server": "https://*.up.railway.app/",
   "server_address": [],
   "local_address": "127.0.0.1",
   "local_port": 8787,
@@ -90,9 +98,9 @@ npm i --no-optional
 }
 ```
 
-如果服务器的 IP 地址固定，可以将 `server_address` 字段修改为服务器的 IP 地址。
+如果 `server` 字段的主机部分不是一个 IP 地址，而是一个主机名，shadowsocks-ws 客户端就会自动进行 DNS 查询。如果服务器的 IP 地址已知并且已经用 `server_address` 字段一一列出，shadowsocks-ws 客户端就不会进行 DNS 查询。
 
-如果服务器的域名解析失败，可以尝试修改 `nameserver` 字段。下列取值供参考：
+`nameserver` 字段的值必须是 DoH 服务器的地址。下列取值供参考：
 
 - DNSPod `https://doh.pub/dns-query`
 - AliDNS `https://dns.alidns.com/dns-query`
@@ -233,10 +241,10 @@ rules:
 ## 鸣谢
 
 - [websockets/ws][ws] Simple to use, blazing fast and thoroughly tested WebSocket client and server for Node.js
-- [expressjs/express][ws] Fast, unopinionated, minimalist web framework for node.
-- [chimurai/http-proxy-middleware][ws] The one-liner node.js http-proxy middleware for connect, express, next.js and more
+- [expressjs/express][express] Fast, unopinionated, minimalist web framework for node.
+- [chimurai/http-proxy-middleware][proxy] The one-liner node.js http-proxy middleware for connect, express, next.js and more
 - [byu-imaal/dohjs][dohjs] DNS over HTTPS client for use in the browser
-- [Marak/colors][colors] get colors in your node.js console 
+- [Marak/colors][colors] get colors in your node.js console
 - [soldair/qrcode][qrcode] qr code generator
 - [Shadowsocks for Windows][sfw] A C# port of shadowsocks
 - [Clash for Windows][cfw] clash for windows汉化版. 提供clash for windows的汉化版, 汉化补丁及汉化版安装程序
