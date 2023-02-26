@@ -105,20 +105,20 @@ npm i --no-optional
 - [DNSPod](https://www.dnspod.cn/) `https://doh.pub/dns-query`
 - [AliDNS](https://alidns.com/) `https://dns.alidns.com/dns-query`
 - [360DNS](https://sdns.360.net/) `https://doh.360.cn/dns-query`
-- [Yeti](https://www.ipv6dns.com/) `https://dns.ipv6dns.com/dns-query`
+- [IPv6 DNS](https://www.ipv6dns.com/) `https://dns.ipv6dns.com/dns-query`
 - [Quad9](https://www.quad9.net/) `https://dns10.quad9.net/dns-query`
 - [Cisco OpenDNS](https://www.opendns.com/) `https://doh.opendns.com/dns-query`
-- [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/) `https://1.1.1.1/dns-query`
-- [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/) `https://1.0.0.1/dns-query`
+- [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests) `https://1.1.1.1/dns-query`
+- [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests) `https://1.0.0.1/dns-query`
 - AT&T `https://dohtrial.att.net/dns-query`
-- IIJ `https://public.dns.iij.jp/dns-query`
-- [AdGuard](https://adguard-dns.io) `https://unfiltered.adguard-dns.com/dns-query`
+- [IIJ](https://public.dns.iij.jp/) `https://public.dns.iij.jp/dns-query`
+- [AdGuard](https://adguard-dns.io/) `https://unfiltered.adguard-dns.com/dns-query`
 - [bebasdns](https://github.com/bebasid/bebasdns) `https://dns.bebasid.com/dns-query`
 - [AlekBergNl](https://alekberg.net/) `https://dnsnl.alekberg.net/dns-query`
 - [AlekBergSE](https://alekberg.net/) `https://dnsse.alekberg.net/dns-query`
 - [adfree](https://usableprivacy.com/) `https://adfree.usableprivacy.net/query`
 - [Control D](https://controld.com/) `https://freedns.controld.com/p0`
-- [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/) `https://cloudflare-dns.com/dns-query`
+- [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests) `https://cloudflare-dns.com/dns-query`
 
 启动 shadowsocks-ws 客户端：
 
