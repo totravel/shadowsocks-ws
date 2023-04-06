@@ -7,10 +7,12 @@ import { toString } from 'qrcode'
 import WebSocket, { createWebSocketStream } from 'ws'
 import { debuglog, infolog, warnlog, errorlog, readFile, lookup } from './util.mjs'
 
+
 function makeSsUrl(method, password, local_address, local_port) {
   const userinfo = Buffer.from(method + ':' + password).toString('base64')
   return 'ss://' + userinfo + '@' + local_address + ':' + local_port
 }
+
 
 function checkServer(url, options) {
   return new Promise((resolve, reject) => {
@@ -27,6 +29,7 @@ function checkServer(url, options) {
     req.end()
   })
 }
+
 
 function startServer(url, options, localPort) {
   const server = createServer()
@@ -76,6 +79,7 @@ function startServer(url, options, localPort) {
 
 console.log(readFile('./banner.txt'))
 
+
 let config = null
 try {
   config = JSON.parse(readFile('./config.json'))
@@ -83,6 +87,7 @@ try {
   errorlog(`failed to load configurations: ${err.message}`)
   exit(1)
 }
+
 
 if (config.show_qrcode || config.show_url) {
   const url = makeSsUrl(config.method, config.password, config.local_address, config.local_port)
@@ -93,6 +98,7 @@ if (config.show_qrcode || config.show_url) {
     infolog(`URL: ${url.underline}`)
   }
 }
+
 
 const homeUrl = new URL(config.server)
 const serverUrl = new URL(homeUrl)
@@ -107,6 +113,8 @@ switch (homeUrl.protocol) {
     errorlog(`invalid URL: ${config.server}`)
     exit(1)
 }
+infolog(`server: '${homeUrl}'`)
+
 
 const options = {
   timeout: config.timeout,
@@ -118,6 +126,29 @@ const options = {
     'Accept-Encoding': 'gzip, deflate, br'
   }
 }
+
+// TLS fingerprinting
+// https://www.openssl.org/docs/man1.1.1/man1/ciphers.html#CIPHER-SUITE-NAMES
+options.ciphers = [
+  'TLS_AES_128_GCM_SHA256',
+  'TLS_CHACHA20_POLY1305_SHA256',
+  'TLS_AES_256_GCM_SHA384',
+  'ECDHE-ECDSA-AES128-GCM-SHA256',
+  'ECDHE-RSA-AES128-GCM-SHA256',
+  'ECDHE-ECDSA-CHACHA20-POLY1305',
+  'ECDHE-RSA-CHACHA20-POLY1305',
+  'ECDHE-ECDSA-AES256-GCM-SHA384',
+  'ECDHE-RSA-AES256-GCM-SHA384',
+  'ECDHE-ECDSA-AES256-SHA',
+  'ECDHE-ECDSA-AES128-SHA',
+  'ECDHE-RSA-AES128-SHA',
+  'ECDHE-RSA-AES256-SHA',
+  'AES128-GCM-SHA256',
+  'AES256-GCM-SHA384',
+  'AES128-SHA',
+  'AES256-SHA',
+  'DES-CBC3-SHA'
+].join(':')
 
 let address = []
 if (isIP(serverUrl.hostname)) {
@@ -139,6 +170,7 @@ if (isIP(serverUrl.hostname)) {
   }
 }
 
+
 let elapsed = Infinity
 const checkUrl = new URL('/generate_204', homeUrl)
 for (const addr of address) {
@@ -158,6 +190,7 @@ for (const addr of address) {
     warnlog(`cannot connect to ${addr}: ${err.message}`)
   }
 }
+
 
 if (elapsed < Infinity) {
   infolog(`remote server running on host '${homeUrl.hostname}' (${serverUrl.hostname})`)
