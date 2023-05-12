@@ -78,7 +78,7 @@ npm start
 ```bash
 git clone https://github.com/totravel/shadowsocks-ws.git
 cd shadowsocks-ws
-npm i --no-optional
+npm i --omit=dev --omit=optional
 ```
 
 将 shadowsocks-ws 客户端的配置文件的模板 `config.json.example` 重命名为 `config.json` 并修改其中的 `server`、`password` 和 `method` 三个字段。
