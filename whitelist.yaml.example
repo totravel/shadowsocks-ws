@@ -53,11 +53,6 @@ rule-providers:
     type: file
     path: ./ruleset/gfw.yaml
 
-  greatfire:
-    behavior: "domain"
-    type: file
-    path: ./ruleset/greatfire.yaml
-
   tld-not-cn:
     behavior: "domain"
     type: file
@@ -85,11 +80,13 @@ rule-providers:
 
 rules:
   - RULE-SET,applications,DIRECT
+  - DOMAIN,clash.razord.top,DIRECT
+  - DOMAIN,yacd.haishan.me,DIRECT
   - RULE-SET,private,DIRECT
   - RULE-SET,reject,REJECT
   - RULE-SET,icloud,DIRECT
   - RULE-SET,apple,DIRECT
-  - RULE-SET,google,DIRECT
+  - RULE-SET,google,PROXY
   - RULE-SET,proxy,PROXY
   - RULE-SET,direct,DIRECT
   - RULE-SET,lancidr,DIRECT
