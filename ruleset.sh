@@ -10,7 +10,6 @@ files=(
   direct
   private
   gfw
-  greatfire
   tld-not-cn
   telegramcidr
   cncidr
