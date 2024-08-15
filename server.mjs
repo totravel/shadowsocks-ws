@@ -56,7 +56,7 @@ if (PROXY === '') {
   })
 
   app.use((req, res, next) => {
-    res.status(404).sendFile(__dirname + '/404.html')
+    res.status(500).sendFile(__dirname + '/50x.html')
   })
 } else {
   app.use(createProxyMiddleware('/', {

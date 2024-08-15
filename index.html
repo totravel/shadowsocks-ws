@@ -1,28 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.staticfile.net/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
-    <title>Home</title>
-  </head>
-  <body>
-    <div class="vh-100 d-flex justify-content-center align-items-center">
-      <h1 class="display-4 user-select-none">You're free as a bird!</h1>
-    </div>
-    <script>
-      function updateColorScheme(e) {
-        if (e.matches) {
-          document.body.classList.add('bg-dark', 'text-light')
-        } else {
-          document.body.classList.remove('bg-dark', 'text-light')
-        }
-      }
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
 
-      const media = window.matchMedia('(prefers-color-scheme: dark)')
-      media.addEventListener('change', updateColorScheme)
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
 
-      updateColorScheme(media)
-    </script>
-  </body>
+<p><em>Thank you for using nginx.</em></p>
+</body>
 </html>
