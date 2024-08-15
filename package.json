@@ -21,25 +21,24 @@
     "colors": "^1.4.0",
     "dohjs": "^0.3.3",
     "qrcode": "^1.5.1",
-    "undici": "^5.20.0",
     "ws": "^8.12.1"
   },
   "engines": {
-    "node": "v18.14.2",
-    "npm": "v9.5.0"
+    "node": "v20.16.0",
+    "npm": "v10.8.1"
   },
   "devDependencies": {
     "@eslint/create-config": "^0.4.3",
-    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.1.0",
+    "@rollup/plugin-terser": "^0.4.4",
     "eslint": "^8.40.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-promise": "^6.1.1",
-    "rollup": "^3.17.3"
+    "rollup": "^4.20.0"
   },
   "optionalDependencies": {
     "express": "^4.18.2",

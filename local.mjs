@@ -120,8 +120,8 @@ const options = {
   timeout: config.timeout,
   origin: homeUrl.origin,
   headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/110.0',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
     'Accept-Language': 'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
     'Accept-Encoding': 'gzip, deflate, br'
   }
@@ -131,23 +131,21 @@ const options = {
 // https://www.openssl.org/docs/man1.1.1/man1/ciphers.html#CIPHER-SUITE-NAMES
 options.ciphers = [
   'TLS_AES_128_GCM_SHA256',
-  'TLS_CHACHA20_POLY1305_SHA256',
-  'TLS_AES_256_GCM_SHA384',
-  'ECDHE-ECDSA-AES128-GCM-SHA256',
-  'ECDHE-RSA-AES128-GCM-SHA256',
-  'ECDHE-ECDSA-CHACHA20-POLY1305',
-  'ECDHE-RSA-CHACHA20-POLY1305',
-  'ECDHE-ECDSA-AES256-GCM-SHA384',
   'ECDHE-RSA-AES256-GCM-SHA384',
   'ECDHE-ECDSA-AES256-SHA',
+  'TLS_CHACHA20_POLY1305_SHA256',
+  'ECDHE-ECDSA-CHACHA20-POLY1305',
+  'ECDHE-ECDSA-AES128-GCM-SHA256',
+  'TLS_AES_256_GCM_SHA384',
+  'ECDHE-RSA-AES128-GCM-SHA256',
+  'ECDHE-RSA-CHACHA20-POLY1305',
+  'AES256-SHA',
+  'ECDHE-ECDSA-AES256-GCM-SHA384',
+  'AES256-GCM-SHA384',
   'ECDHE-ECDSA-AES128-SHA',
+  'AES128-GCM-SHA256',
   'ECDHE-RSA-AES128-SHA',
   'ECDHE-RSA-AES256-SHA',
-  'AES128-GCM-SHA256',
-  'AES256-GCM-SHA384',
-  'AES128-SHA',
-  'AES256-SHA',
-  'DES-CBC3-SHA'
 ].join(':')
 
 let address = []
@@ -161,6 +159,7 @@ if (isIP(serverUrl.hostname)) {
     address = config.server_address
   } else {
     try {
+      infolog(`nameserver: '${config.nameserver}'`)
       infolog(`resolving ${serverUrl.hostname}...`)
       address = await lookup(serverUrl.hostname, config.nameserver)
     } catch (err) {
