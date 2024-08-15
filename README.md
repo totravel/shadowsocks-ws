@@ -61,6 +61,33 @@ npm run build
 npm start
 ```
 
+#### 使用 PM2 创建守护进程
+
+确认服务器可以正常工作后，就可以用 [PM2][pm2] 来创建守护进程了。此时，加密方案、密码和端口号等配置都需要在 PM2 的配置文件 `ecosystem.config.js` 中指定：
+
+```js
+module.exports = {
+  apps : [{
+    name: "shadowsocks-ws",
+    script: "./server.min.js",
+    env: {
+      "NODE_ENV": "production",
+      "METHOD": "aes-256-gcm",
+      "PASS": "secret",
+      "PROXY": "https://github.com",
+      "PORT": 80
+    }
+  }]
+}
+```
+
+安装 PM2 并创建守护进程：
+
+```bash
+npm install pm2 -g
+pm2 start ecosystem.config.js
+```
+
 ## 客户端配置
 
 用户需要在本地同时运行 shadowsocks-ws 客户端和常规 Shadowsocks 客户端。
@@ -243,6 +270,8 @@ rules:
 [nodejs]: https://nodejs.dev/en/download/
 [wt]: https://github.com/microsoft/terminal
 [gfw]: https://gitforwindows.org/
+
+[pm2]: https://github.com/Unitech/pm2
 
 [heroku]: https://www.heroku.com/
 [railway]: https://railway.app/
