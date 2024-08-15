@@ -65,7 +65,7 @@ npm start
 
 确认服务器可以正常工作后，就可以用 [PM2][pm2] 来创建守护进程了。
 
-将 PM2 配置文件的模板 `ecosystem.config.js.example` 重命名为 `ecosystem.config.js` 并根据需要修改 `env` 结点下的字段。
+将 PM2 配置文件的模板 `ecosystem.config.js.example` 重命名为 `ecosystem.config.js` 并根据需要修改或注释 `env` 结点下的字段。
 
 ```js
 module.exports = {
