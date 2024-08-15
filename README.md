@@ -63,7 +63,9 @@ npm start
 
 #### 使用 PM2 创建守护进程
 
-确认服务器可以正常工作后，就可以用 [PM2][pm2] 来创建守护进程了。此时，加密方案、密码和端口号等配置都需要在 PM2 的配置文件 `ecosystem.config.js` 中指定：
+确认服务器可以正常工作后，就可以用 [PM2][pm2] 来创建守护进程了。
+
+将 PM2 配置文件的模板 `ecosystem.config.js.example` 重命名为 `ecosystem.config.js` 并根据需要修改 `env` 结点下的字段。
 
 ```js
 module.exports = {
@@ -102,7 +104,7 @@ cd shadowsocks-ws
 npm i --omit=dev --omit=optional
 ```
 
-将 shadowsocks-ws 客户端的配置文件的模板 `config.json.example` 重命名为 `config.json` 并修改其中的 `server`、`password` 和 `method` 三个字段。
+将 shadowsocks-ws 客户端配置文件的模板 `config.json.example` 重命名为 `config.json` 并修改其中的 `server`、`password` 和 `method` 三个字段。
 
 ```json
 {
