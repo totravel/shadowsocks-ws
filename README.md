@@ -27,13 +27,8 @@ shadowsocks-ws 客户端（`ss-ws-local`）和 shadowsocks-ws 服务器（`ss-ws
 
 ### PaaS
 
-Heroku
-
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-
-Railway
-
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/9exsjX?referralCode=ssws)
+- [Heroku][heroku]
+- [Railway][railway]
 
 ### VPS
 
@@ -105,18 +100,13 @@ npm i --omit=dev --omit=optional
 - [AliDNS](https://alidns.com/) `https://dns.alidns.com/dns-query`
 - [360DNS](https://sdns.360.net/) `https://doh.360.cn/dns-query`
 - [IPv6 DNS](https://www.ipv6dns.com/) `https://dns.ipv6dns.com/dns-query`
-- [Quad9](https://www.quad9.net/) `https://dns10.quad9.net/dns-query`
 - [Cisco OpenDNS](https://www.opendns.com/) `https://doh.opendns.com/dns-query`
 - [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests) `https://1.1.1.1/dns-query`
 - [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests) `https://1.0.0.1/dns-query`
-- AT&T `https://dohtrial.att.net/dns-query`
-- [IIJ](https://public.dns.iij.jp/) `https://public.dns.iij.jp/dns-query`
-- [AdGuard](https://adguard-dns.io/) `https://unfiltered.adguard-dns.com/dns-query`
 - [bebasdns](https://github.com/bebasid/bebasdns) `https://dns.bebasid.com/dns-query`
 - [AlekBergNl](https://alekberg.net/) `https://dnsnl.alekberg.net/dns-query`
 - [AlekBergSE](https://alekberg.net/) `https://dnsse.alekberg.net/dns-query`
 - [adfree](https://usableprivacy.com/) `https://adfree.usableprivacy.net/query`
-- [Control D](https://controld.com/) `https://freedns.controld.com/p0`
 - [Cloudflare](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests) `https://cloudflare-dns.com/dns-query`
 
 启动 shadowsocks-ws 客户端：
@@ -220,10 +210,6 @@ rules:
 ### shadowsocks-ws 客户端提示所有 IP 地址都连接超时？
 
 先用浏览器访问服务器，确保服务器可以访问。再修改配置文件中的 `nameserver` 字段并重试。
-
-### 有支持 Shadowsocks 2022 的计划吗？
-
-有。由于 [Shadowsocks 2022][ss2022] 变化较大，需要更多的时间进行开发和测试。
 
 ### shadowsocks-ws 支持 UDP 代理吗？
 
