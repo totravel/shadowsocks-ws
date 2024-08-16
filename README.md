@@ -74,9 +74,9 @@ module.exports = {
     script: "./server.min.js",
     env: {
       "NODE_ENV": "production",
+      "PROXY": "https://github.com",
       "METHOD": "aes-256-gcm",
       "PASS": "secret",
-      "PROXY": "https://github.com",
       "PORT": 80
     }
   }]

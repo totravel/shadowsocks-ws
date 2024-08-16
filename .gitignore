@@ -2,6 +2,6 @@
 package-lock.json
 config.json
 *.yaml
-*.toml
+*.config.js
 *.min.js
 *.min.js.map
