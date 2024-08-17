@@ -1,34 +1,12 @@
 
 import { exit } from 'node:process'
-import http from 'node:http'
-import https from 'node:https'
+import { readFileSync } from 'node:fs'
 import { isIP, createServer } from 'node:net'
+
 import { toString } from 'qrcode'
 import WebSocket, { createWebSocketStream } from 'ws'
-import { debuglog, infolog, warnlog, errorlog, readFile, lookup } from './util.mjs'
 
-
-function makeSsUrl(method, password, local_address, local_port) {
-  const userinfo = Buffer.from(method + ':' + password).toString('base64')
-  return 'ss://' + userinfo + '@' + local_address + ':' + local_port
-}
-
-
-function checkServer(url, options) {
-  return new Promise((resolve, reject) => {
-    const { request } = url.protocol === 'https:' ? https : http
-    const req = request(url, options, (res) => {
-      if (res.statusCode === 204) {
-        resolve()
-      } else {
-        reject(new Error(`unexpected response: ${res.statusCode}`))
-      }
-    })
-    req.on('timeout', () => req.destroy(new Error('timeout'))) // 'error' event will be called
-    req.on('error', reject)
-    req.end()
-  })
-}
+import { debuglog, infolog, warnlog, errorlog, lookup } from './util.mjs'
 
 
 function startServer(url, options, localPort) {
@@ -77,42 +55,24 @@ function startServer(url, options, localPort) {
 }
 
 
-console.log(readFile('./banner.txt'))
-
-
-let config = null
-try {
-  config = JSON.parse(readFile('./config.json'))
-} catch (err) {
-  errorlog(`failed to load configurations: ${err.message}`)
-  exit(1)
-}
+console.log(readFileSync('./banner.txt'))
+const config = JSON.parse(readFileSync('./config.json'))
 
 
 if (config.show_qrcode || config.show_url) {
-  const url = makeSsUrl(config.method, config.password, config.local_address, config.local_port)
+  const userinfo = Buffer.from(config.method + ':' + config.password).toString('base64')
+  const ssUrl = 'ss://' + userinfo + '@' + config.local_address + ':' + config.local_port
+
   if (config.show_qrcode) {
-    console.log(await toString(url, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
+    console.log(await toString(ssUrl, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
   }
   if (config.show_url) {
-    infolog(`URL: ${url.underline}`)
+    infolog(`URL: ${ssUrl.underline}`)
   }
 }
 
 
 const homeUrl = new URL(config.server)
-const serverUrl = new URL(homeUrl)
-switch (homeUrl.protocol) {
-  case 'https:':
-    serverUrl.protocol = 'wss:'
-    break
-  case 'http:':
-    serverUrl.protocol = 'ws:'
-    break
-  default:
-    errorlog(`invalid URL: ${config.server}`)
-    exit(1)
-}
 infolog(`server: '${homeUrl}'`)
 
 
@@ -148,6 +108,11 @@ options.ciphers = [
   'ECDHE-RSA-AES256-SHA',
 ].join(':')
 
+
+const serverUrl = new URL(homeUrl)
+const IS_HTTPS = serverUrl.protocol === 'https:'
+serverUrl.protocol = IS_HTTPS ? 'wss:' : 'ws:'
+
 let address = []
 if (isIP(serverUrl.hostname)) {
   address.push(serverUrl.hostname)
@@ -170,14 +135,29 @@ if (isIP(serverUrl.hostname)) {
 }
 
 
-let elapsed = Infinity
 const checkUrl = new URL('/generate_204', homeUrl)
+const { request } = IS_HTTPS
+  ? await import('node:https')
+  : await import('node:http')
+
+let elapsed = Infinity
 for (const addr of address) {
   try {
     infolog(`trying ${addr}...`)
     checkUrl.hostname = addr
     const start = Date.now()
-    await checkServer(checkUrl, options)
+    await new Promise((resolve, reject) => {
+      const req = request(checkUrl, options, (res) => {
+        if (res.statusCode === 204) {
+          resolve()
+        } else {
+          reject(new Error(`unexpected response: ${res.statusCode}`))
+        }
+      })
+      req.on('timeout', () => req.destroy(new Error('timeout'))) // 'error' event will be called
+      req.on('error', reject)
+      req.end()
+    })
     const end = Date.now()
     const t = end - start
     if (t < elapsed) {

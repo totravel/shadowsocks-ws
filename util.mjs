@@ -2,13 +2,12 @@
 import 'colors'
 import { env } from 'node:process'
 import { debug, info, warn, error } from 'node:console'
-import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { createConnection } from 'node:net'
 import dohjs from 'dohjs'
 const { DohResolver } = dohjs
 
-function castEnv(value, type) {
+function fromString(value, type) {
   if (type === 'string') {
     return value
   }
@@ -35,11 +34,11 @@ function castEnv(value, type) {
   return newValue
 }
 
-export function getEnv(name, defaultValue, range = []) {
+export function readEnv(name, defaultValue, possibleValues = []) {
   if (name in env) {
-    const value = castEnv(env[name], typeof defaultValue)
+    const value = fromString(env[name], typeof defaultValue)
     if (value !== null) {
-      if (range.length === 0 || range.includes(value)) {
+      if (possibleValues.length === 0 || possibleValues.includes(value)) {
         return value
       }
     }
@@ -48,7 +47,7 @@ export function getEnv(name, defaultValue, range = []) {
   return defaultValue
 }
 
-export const NODE_ENV = getEnv('NODE_ENV', 'production', ['production', 'development'])
+export const NODE_ENV = readEnv('NODE_ENV', 'production', ['production', 'development'])
 export const APP_DEBUG = NODE_ENV === 'development'
 
 export const debuglog = APP_DEBUG
@@ -60,8 +59,6 @@ export const infolog = (...args) => info('INFO '.green, ...args)
 export const warnlog = (...args) => warn('WARN '.yellow, ...args)
 
 export const errorlog = (...args) => error('ERROR'.red, ...args)
-
-export const readFile = (path) => readFileSync(path, { encoding: 'utf8' })
 
 // https://www.openssl.org/docs/man3.0/man3/EVP_BytesToKey.html
 export function EVP_BytesToKey(data, keylen, ivlen = 0) {
