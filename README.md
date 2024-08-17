@@ -54,7 +54,7 @@ export PORT=80
 export PROXY='https://github.com'
 ```
 
-生成并启动 shadowsocks-ws 服务器：
+构建并运行 shadowsocks-ws 服务器：
 
 ```bash
 npm run build
@@ -63,23 +63,25 @@ npm start
 
 #### 使用 PM2 创建守护进程
 
-确认服务器可以正常工作后，就可以用 [PM2][pm2] 来创建守护进程了。
+确认服务器可以正常运行后，就可以用 [PM2][pm2] 来创建守护进程了。
 
-将 PM2 配置文件的模板 `ecosystem.config.js.example` 重命名为 `ecosystem.config.js` 并根据需要修改或注释 `env` 结点下的字段。
+将 PM2 配置文件的模板 `ecosystem.config.js.example` 重命名为 `ecosystem.config.js` 并根据需要修改 `env` 结点下的字段。
 
 ```js
 module.exports = {
-  apps : [{
-    name: "shadowsocks-ws",
-    script: "./server.min.js",
-    env: {
-      "NODE_ENV": "production",
-      "PROXY": "https://github.com",
-      "METHOD": "aes-256-gcm",
-      "PASS": "secret",
-      "PORT": 80
+  apps: [
+    {
+      name: "shadowsocks-ws",
+      script: "./server.min.js",
+      env: {
+        "NODE_ENV": "production",
+        "METHOD": "aes-256-gcm",
+        "PASS": "secret",
+        "PROXY": "https://github.com",
+        "PORT": 80
+      }
     }
-  }]
+  ]
 }
 ```
 
@@ -88,6 +90,35 @@ module.exports = {
 ```bash
 npm install pm2 -g
 pm2 start ecosystem.config.js
+```
+
+#### 配置 SSL 证书以启用 HTTPS
+
+在有配置域名和证书的主机上，要启用 HTTPS，只需要额外添加两个环境变量 `CERT` 和 `CERT_KEY`，分别指定证书和私钥的路径。
+
+```js
+module.exports = {
+  apps: [
+    {
+      name: "shadowsocks-ws",
+      script: "./server.min.js",
+      env: {
+        "NODE_ENV": "production",
+        "METHOD": "aes-256-gcm",
+        "PASS": "secret",
+        "CERT": "fullchain.pem",   // your full chain certs
+        "CERT_KEY": "privkey.pem", // your cert key
+        "PORT": 443
+      }
+    }
+  ]
+}
+```
+
+重新加载配置文件生效：
+
+```bash
+pm2 reload ecosystem.config.js
 ```
 
 ## 客户端配置
@@ -121,7 +152,7 @@ npm i --omit=dev --omit=optional
 }
 ```
 
-如果 `server` 字段的主机部分不是一个 IP 地址，而是一个主机名，shadowsocks-ws 客户端就会自动进行 DNS 查询。如果服务器的 IP 地址已知并且已经用 `server_address` 字段一一列出，shadowsocks-ws 客户端就不会进行 DNS 查询。
+如果 `server` 字段的主机名字段不是一个 IP 地址，而是一个域名，shadowsocks-ws 客户端就会自动进行 DNS 查询。如果服务器的 IP 地址已知并且已经用 `server_address` 字段一一列出，shadowsocks-ws 客户端就不会进行 DNS 查询。
 
 `nameserver` 字段的值必须是 DoH 服务器的地址。下列取值供参考：
 

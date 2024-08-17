@@ -1,39 +1,46 @@
 
 import 'colors'
-import path from 'node:path'
+import { dirname } from 'node:path'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { createServer } from 'node:http'
 import { hkdfSync, randomBytes } from 'node:crypto'
+
 import express from 'express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import WebSocket, { WebSocketServer } from 'ws'
+
 import { AEAD } from './aead.mjs'
 import {
-  getEnv as env, debuglog, infolog, warnlog, errorlog,
+  readEnv, debuglog, infolog, warnlog, errorlog,
   EVP_BytesToKey, connect, inet_ntoa, inet_ntop
 } from './util.mjs'
 
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __dirname = dirname(__filename)
 
 
-const CLOSED  = 'closed'
+const CLOSED = 'closed'
 const OPENING = 'opening'
-const OPEN    = 'open'
+const OPEN = 'open'
 const WRITING = 'writing'
 
 
 const dump = (from, to, stage) => `from=${from.blue} to=${to.cyan} stage=${stage.green}`
 
 
-const METHOD = env('METHOD', 'chacha20-poly1305', [
-  'aes-256-gcm',
-  'chacha20-poly1305'
-])
-const PASS   = env('PASS', 'secret')
-const PORT   = env('PORT', 80)
-const PROXY  = env('PROXY', '')
+const METHOD = readEnv('METHOD', 'chacha20-poly1305', ['aes-256-gcm', 'chacha20-poly1305'])
+const PASS = readEnv('PASS', 'secret')
+
+const PROXY = readEnv('PROXY', '')
+const EN_PROXY = PROXY.length !== 0
+
+const CERT_KEY = readEnv('CERT_KEY', '')
+const CERT = readEnv('CERT', '')
+const EN_TLS = CERT_KEY.length !== 0 && CERT.length !== 0
+
+const PORT = readEnv('PORT', EN_TLS ? 443 : 80)
+
 
 const { keySize: KEY_SIZE, saltSize: SALT_SIZE, tagSize: TAG_SIZE } = AEAD.getSize(METHOD)
 const { key: KEY } = EVP_BytesToKey(PASS, KEY_SIZE)
@@ -50,7 +57,12 @@ app.get('/generate_204', (req, res) => {
 })
 
 
-if (PROXY === '') {
+if (EN_PROXY) {
+  app.use(createProxyMiddleware('/', {
+    target: PROXY,
+    changeOrigin: true
+  }))
+} else {
   app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html')
   })
@@ -58,15 +70,17 @@ if (PROXY === '') {
   app.use((req, res, next) => {
     res.status(500).sendFile(__dirname + '/50x.html')
   })
-} else {
-  app.use(createProxyMiddleware('/', {
-    target: PROXY,
-    changeOrigin: true
-  }))
 }
 
 
-const server = createServer(app)
+const { createServer } = EN_TLS
+  ? await import('node:https')
+  : await import('node:http')
+
+const server = EN_TLS
+  ? createServer({ key: readFileSync(CERT_KEY), cert: readFileSync(CERT) }, app)
+  : createServer(app)
+
 const wss = new WebSocketServer({ server })
 
 

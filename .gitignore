@@ -3,5 +3,7 @@ package-lock.json
 config.json
 *.yaml
 *.config.js
+*.cer
+*.key
 *.min.js
 *.min.js.map
