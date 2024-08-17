@@ -2,11 +2,11 @@
   "name": "shadowsocks-ws",
   "version": "9.0.0",
   "description": "Shadowsocks over WebSocket",
-  "main": "server.min.js",
+  "main": "server.min.mjs",
   "scripts": {
-    "dev": "rollup -c && node --enable-source-maps server.min.js",
+    "dev": "rollup -c && node --enable-source-maps server.min.mjs",
     "build": "rollup -c",
-    "start": "node server.min.js",
+    "start": "node server.min.mjs",
     "lint": "eslint --ext .mjs ./",
     "local": "node --no-warnings local.mjs"
   },

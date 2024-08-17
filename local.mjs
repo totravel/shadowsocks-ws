@@ -55,7 +55,7 @@ function startServer(url, options, localPort) {
 }
 
 
-console.log(readFileSync('./banner.txt'))
+console.log(readFileSync('./banner.txt', 'utf8'))
 const config = JSON.parse(readFileSync('./config.json'))
 
 

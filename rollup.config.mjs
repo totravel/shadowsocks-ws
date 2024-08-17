@@ -7,8 +7,8 @@ import json from '@rollup/plugin-json'
 export default {
   input: 'server.mjs',
   output: {
-    file: 'server.min.js',
-    format: 'cjs',
+    file: 'server.min.mjs',
+    format: 'es',
     sourcemap: true,
     plugins: [ terser() ]
   },

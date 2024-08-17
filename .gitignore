@@ -5,5 +5,5 @@ config.json
 *.config.js
 *.cer
 *.key
-*.min.js
-*.min.js.map
+*.min.mjs
+*.min.mjs.map
