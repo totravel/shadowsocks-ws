@@ -29,6 +29,8 @@ shadowsocks-ws 客户端（`ss-ws-local`）和 shadowsocks-ws 服务器（`ss-ws
 
 - [Heroku][heroku]
 - [Railway][railway]
+- [Render][render]
+- [Adaptable][adaptable]
 
 ### VPS
 
@@ -308,6 +310,8 @@ rules:
 
 [heroku]: https://www.heroku.com/
 [railway]: https://railway.app/
+[render]: https://render.com/
+[adaptable]: https://adaptable.io/
 
 [sfw]: https://github.com/shadowsocks/shadowsocks-windows
 [cfw]: https://github.com/ender-zhao/Clash-for-Windows_Chinese
