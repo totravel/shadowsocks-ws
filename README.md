@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/github/license/totravel/shadowsocks-ws)
 ![GitHub last commit](https://img.shields.io/github/last-commit/totravel/shadowsocks-ws)
 
-shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，支持反向代理，支持 TLS，可以部署在 PaaS 平台或常规 VPS 上。
+shadowsocks-ws 是基于 WebSocket 的 Shadowsocks，支持 AEAD，支持反向代理，支持 TLS，可以部署在 PaaS 平台或常规 VPS 上，可以搭配 V2RayN 使用。
 
 ## 服务器部署
 
