@@ -1,5 +1,5 @@
 {
-  "nameserver": "https://doh.opendns.com/dns-query",
+  "nameserver": "https://dns.alidns.com/dns-query",
   "server": "https://*.up.railway.app/",
   "server_address": [],
   "local_address": "127.0.0.1",
