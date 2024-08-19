@@ -70,7 +70,14 @@ npm install pm2 -g
 pm2 start ecosystem.config.js
 ```
 
-`pm2` 命令的更多用法请参考 [PM2][pm2] 官方文档。
+设置开机自启动：
+
+```bash
+pm2 startup
+pm2 save
+```
+
+PM2 的更多用法请参考 [PM2][pm2] 官方文档。
 
 #### 配置 SSL 证书以启用 TLS
 
