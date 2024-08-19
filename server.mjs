@@ -60,7 +60,10 @@ app.get('/generate_204', (req, res) => {
 if (EN_PROXY) {
   app.use(createProxyMiddleware('/', {
     target: PROXY,
-    changeOrigin: true
+    changeOrigin: true,
+    onError: (err, req, res) => {
+      res.status(500).sendFile(__dirname + '/50x.html')
+    }
   }))
 } else {
   app.get('/', (req, res) => {
@@ -78,7 +81,7 @@ const { createServer } = EN_TLS
   : await import('node:http')
 
 const server = EN_TLS
-  ? createServer({ key: readFileSync(CERT_KEY), cert: readFileSync(CERT) }, app)
+  ? createServer({ minVersion: 'TLSv1.3', key: readFileSync(CERT_KEY), cert: readFileSync(CERT) }, app)
   : createServer(app)
 
 const wss = new WebSocketServer({ server })
