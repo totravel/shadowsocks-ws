@@ -44,7 +44,13 @@ npm run build
 
 #### 使用 PM2 创建守护进程
 
-将 [PM2][pm2] 配置文件的模板 `ecosystem.config.js.example` 重命名为 `ecosystem.config.js` 并根据需要修改 `env` 结点下的字段。
+[PM2][pm2] 是 Node.js 应用进程管理器。安装 PM2：
+
+```bash
+npm install pm2 -g
+```
+
+将 PM2 配置文件的模板 `ecosystem.config.js.example` 重命名为 `ecosystem.config.js` 并根据需要修改 `env` 结点下的字段。
 
 ```js
 module.exports = {
@@ -63,10 +69,9 @@ module.exports = {
 }
 ```
 
-安装 PM2 并创建守护进程：
+创建守护进程：
 
 ```bash
-npm install pm2 -g
 pm2 start ecosystem.config.js
 ```
 
@@ -106,6 +111,7 @@ module.exports = {
 
 ```bash
 pm2 reload ecosystem.config.js
+pm2 save
 ```
 
 ## 客户端配置
@@ -119,7 +125,7 @@ pm2 reload ecosystem.config.js
 1. 菜单栏 > 设置
     1. 参数设置 > 关闭 UDP
     1. 路由设置 > 菜单栏 > 域名解析策略 > IPIfNonMatch
-1. 底栏 > 路由 > 绕开大陆或黑名单
+1. 底栏 > 路由 > 绕过大陆 / 黑名单
 1. 底栏 > 系统代理 > 自动配置系统代理
 
 ## 求助和反馈
