@@ -45,7 +45,7 @@ npm run build
 [PM2][pm2] 是 Node.js 应用的进程管理器。全局安装 PM2：
 
 ```bash
-npm install pm2 -g
+npm i pm2 -g
 ```
 
 将 PM2 配置文件的模板 `ecosystem.config.js.example` 重命名为 `ecosystem.config.js` 并根据需要修改 `env` 结点下的字段。
@@ -112,7 +112,7 @@ PM2 的更多用法请参考 [PM2][pm2] 官方文档。
     1. 参数设置
         1. 关闭 UDP
         1. 默认TLS指纹 > 从主流的浏览器中选择一个，如 firefox
-        1. 用户代理 > 与默认TLS指纹保持一致
+        1. 用户代理 > 同上
     1. 路由设置 > 菜单栏 > 域名解析策略 > IPIfNonMatch
 1. 底栏 > 路由 > 绕过大陆 / 黑名单
 1. 底栏 > 系统代理 > 自动配置系统代理
