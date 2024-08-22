@@ -33,7 +33,7 @@ shadowsocks-ws 使用下列环境变量：
 
 ### 部署到 VPS
 
-克隆代码、安装依赖、打包模块：
+克隆代码、安装依赖、构建：
 
 ```bash
 git clone https://github.com/totravel/shadowsocks-ws.git
@@ -42,9 +42,7 @@ npm i
 npm run build
 ```
 
-#### 使用 PM2 创建守护进程
-
-[PM2][pm2] 是 Node.js 应用进程管理器。安装 PM2：
+[PM2][pm2] 是 Node.js 应用的进程管理器。全局安装 PM2：
 
 ```bash
 npm install pm2 -g
@@ -62,6 +60,9 @@ module.exports = {
         "NODE_ENV": "production",
         "METHOD": "aes-256-gcm",
         "PASS": "secret",
+        // "PROXY": "https://github.com",
+        // "CERT": "fullchain.pem",   // your full chain certs
+        // "CERT_KEY": "privkey.pem", // your cert key
         "PORT": 80
       }
     }
@@ -69,61 +70,49 @@ module.exports = {
 }
 ```
 
+- 在装有私人网盘服务（如 [Cloudreve][cloudreve]）的主机上，将环境变量 `PROXY` 设置为网盘的地址（如 `http://127.0.0.1:5212`）即可伪装成私人网盘。
+- 在配有域名和证书的主机上，将环境变量 `CERT` 和 `CERT_KEY` 分别设置为证书和私钥的路径即可启用 TLS。如果启用了 TLS，建议同时将端口调整为 `443`。
+
 创建守护进程：
 
 ```bash
 pm2 start ecosystem.config.js
 ```
 
-设置开机自启动：
+设置开机自启：
 
 ```bash
 pm2 startup
 pm2 save
 ```
 
-PM2 的更多用法请参考 [PM2][pm2] 官方文档。
-
-#### 配置 SSL 证书以启用 TLS
-
-在配有域名和证书的主机上，要启用 TLS，只需添加环境变量 `CERT` 和 `CERT_KEY`，分别指定证书和私钥的路径即可。
-
-```js
-module.exports = {
-  apps: [
-    {
-      name: "shadowsocks-ws",
-      script: "./server.min.mjs",
-      env: {
-        "NODE_ENV": "production",
-        "METHOD": "aes-256-gcm",
-        "PASS": "secret",
-        "CERT": "fullchain.pem",   // your full chain certs
-        "CERT_KEY": "privkey.pem", // your cert key
-        "PORT": 443
-      }
-    }
-  ]
-}
-```
-
-重载配置文件以生效：
+常用命令：
 
 ```bash
+pm2 logs
+pm2 stop all
+pm2 restart all
+pm2 delete all
+
 pm2 reload ecosystem.config.js
 pm2 save
 ```
 
+PM2 的更多用法请参考 [PM2][pm2] 官方文档。
+
 ## 客户端配置
 
-下载并运行 [V2RayN][v2rayn]：
+下载并运行 [V2RayN][v2rayn]，完成下列操作：
 
 1. 菜单栏 > 服务器 > 添加[Shadowsocks]服务器
     1. 填写地址、端口、密码、加密方式
     1. 传输协议选择 `ws`
     1. 有启用 TLS 的，传输层安全选择 `tls`
 1. 菜单栏 > 设置
-    1. 参数设置 > 关闭 UDP
+    1. 参数设置
+        1. 关闭 UDP
+        1. 默认TLS指纹 > 从主流的浏览器中选择一个，如 firefox
+        1. 用户代理 > 与默认TLS指纹保持一致
     1. 路由设置 > 菜单栏 > 域名解析策略 > IPIfNonMatch
 1. 底栏 > 路由 > 绕过大陆 / 黑名单
 1. 底栏 > 系统代理 > 自动配置系统代理
@@ -144,6 +133,7 @@ pm2 save
 - [byu-imaal/dohjs][dohjs] DNS over HTTPS client for use in the browser
 - [Marak/colors][colors] get colors in your node.js console
 - [soldair/qrcode][qrcode] qr code generator
+- [Unitech/pm2][pm2] Node.js Production Process Manager with a built-in Load Balancer.
 - [2dust/v2rayN][v2rayn] A GUI client for Windows, support Xray core and v2fly core and others
 
 ## 许可协议
@@ -156,6 +146,7 @@ pm2 save
 [adaptable]: https://adaptable.io/
 
 [pm2]: https://github.com/Unitech/pm2
+[Cloudreve]: https://cloudreve.org/
 [v2rayn]: https://github.com/2dust/v2rayN
 
 [ws]: https://github.com/websockets/ws
