@@ -194,7 +194,7 @@ wss.on('connection', (ws, req) => {
           address = address.subarray(19)
           break
         default:
-          warnlog('invalid atyp', dump(from, to, stage))
+          errorlog('invalid atyp', dump(from, to, stage))
           ws.terminate()
           return
       }
@@ -209,7 +209,7 @@ wss.on('connection', (ws, req) => {
         remote = await connect(port, addr)
         ws.resume()
       } catch (err) {
-        errorlog(err.message, dump(from, to, stage))
+        infolog(err.message, dump(from, to, stage))
         ws.terminate()
         return
       }
