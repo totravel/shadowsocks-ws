@@ -4,8 +4,6 @@ import { env } from 'node:process'
 import { debug, info, warn, error } from 'node:console'
 import { createHash } from 'node:crypto'
 import { createConnection } from 'node:net'
-import dohjs from 'dohjs'
-const { DohResolver } = dohjs
 
 function fromString(value, type) {
   if (type === 'string') {
@@ -161,18 +159,4 @@ export function inet_pton(addr) {
   }
 
   return buf
-}
-
-export async function lookup(hostname, nameserver) {
-  const addresses = []
-  const response = await new DohResolver(nameserver).query(hostname, 'A', 'GET', {}, 5000)
-  for (const answer of response.answers) {
-    if (answer.type === 'A') {
-      addresses.push(answer.data)
-    }
-  }
-  if (addresses.length === 0) {
-    throw new Error('no address associated with hostname')
-  }
-  return addresses
 }

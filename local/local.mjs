@@ -3,10 +3,26 @@ import { exit } from 'node:process'
 import { readFileSync } from 'node:fs'
 import { isIP, createServer } from 'node:net'
 
-import { toString } from 'qrcode'
+import qrcode from 'qrcode'
+import dohjs from 'dohjs'
 import WebSocket, { createWebSocketStream } from 'ws'
 
-import { debuglog, infolog, warnlog, errorlog, lookup } from './util.mjs'
+import { debuglog, infolog, warnlog, errorlog } from '../util.mjs'
+
+
+export async function lookup(hostname, nameserver) {
+  const addresses = []
+  const response = await new dohjs.DohResolver(nameserver).query(hostname, 'A', 'GET', {}, 5000)
+  for (const answer of response.answers) {
+    if (answer.type === 'A') {
+      addresses.push(answer.data)
+    }
+  }
+  if (addresses.length === 0) {
+    throw new Error('no address associated with hostname')
+  }
+  return addresses
+}
 
 
 function startServer(url, options, localPort) {
@@ -64,7 +80,7 @@ if (config.show_qrcode || config.show_url) {
   const ssUrl = 'ss://' + userinfo + '@' + config.local_address + ':' + config.local_port
 
   if (config.show_qrcode) {
-    console.log(await toString(ssUrl, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
+    console.log(await qrcode.toString(ssUrl, { type: 'terminal', errorCorrectionLevel: 'L', small: true }))
   }
   if (config.show_url) {
     infolog(`URL: ${ssUrl.underline}`)

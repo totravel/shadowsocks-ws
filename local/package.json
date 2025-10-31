@@ -1,0 +1,24 @@
+{
+  "name": "shadowsocks-ws-local",
+  "version": "9.0.0",
+  "description": "Shadowsocks over WebSocket",
+  "main": "local.mjs",
+  "engines": {
+    "node": ">=20.16.0",
+    "npm": ">=10.8.1"
+  },
+  "scripts": {
+    "start": "node --no-warnings local.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/totravel/shadowsocks-ws.git"
+  },
+  "homepage": "https://github.com/totravel/shadowsocks-ws",
+  "bugs": "https://github.com/totravel/shadowsocks-ws/issues",
+  "license": "MIT",
+  "dependencies": {
+    "dohjs": "^0.3.3",
+    "qrcode": "^1.5.1"
+  }
+}

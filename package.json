@@ -3,12 +3,17 @@
   "version": "9.0.0",
   "description": "Shadowsocks over WebSocket",
   "main": "server.min.mjs",
+  "engines": {
+    "node": ">=20.16.0",
+    "npm": ">=10.8.1"
+  },
+  "workspaces":["local"],
   "scripts": {
     "dev": "rollup -c && node --enable-source-maps server.min.mjs",
     "build": "rollup -c",
     "start": "node server.min.mjs",
-    "lint": "eslint --ext .mjs ./",
-    "local": "node --no-warnings local.mjs"
+    "local": "npm run start -w=local",
+    "lint": "eslint"
   },
   "repository": {
     "type": "git",
@@ -19,29 +24,17 @@
   "license": "MIT",
   "dependencies": {
     "colors": "^1.4.0",
-    "dohjs": "^0.3.3",
-    "qrcode": "^1.5.1",
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.5",
     "ws": "^8.12.1"
   },
-  "engines": {
-    "node": "v20.16.0",
-    "npm": "v10.8.1"
-  },
-  "devDependencies": {
-    "@eslint/create-config": "^0.4.3",
-    "@rollup/plugin-commonjs": "^26.0.1",
-    "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.4.4",
-    "eslint": "^8.40.0",
-    "eslint-config-standard": "^17.0.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-n": "^15.7.0",
-    "eslint-plugin-promise": "^6.1.1",
-    "rollup": "^4.20.0"
-  },
   "optionalDependencies": {
-    "express": "^4.18.2",
-    "http-proxy-middleware": "^2.0.6"
+    "@eslint/js": "^9.38.0",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "^9.38.0",
+    "rollup": "^4.20.0"
   }
 }

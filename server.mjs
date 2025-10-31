@@ -29,7 +29,7 @@ const WRITING = 'writing'
 const dump = (from, to, stage) => `from=${from.blue} to=${to.cyan} stage=${stage.green}`
 
 
-const METHOD = readEnv('METHOD', 'chacha20-poly1305', ['aes-256-gcm', 'chacha20-poly1305'])
+const METHOD = readEnv('METHOD', 'aes-256-gcm', ['aes-256-gcm', 'chacha20-poly1305'])
 const PASS = readEnv('PASS', 'secret')
 
 const PROXY = readEnv('PROXY', '')
