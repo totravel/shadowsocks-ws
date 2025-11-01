@@ -58,7 +58,7 @@ app.get('/generate_204', (req, res) => {
 
 
 if (EN_PROXY) {
-  app.use(createProxyMiddleware('/', {
+  app.use('/', createProxyMiddleware({
     target: PROXY,
     changeOrigin: true,
     onError: (err, req, res) => {
