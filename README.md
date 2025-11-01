@@ -38,7 +38,7 @@ shadowsocks-ws 使用下列环境变量：
 ```bash
 git clone https://github.com/totravel/shadowsocks-ws.git
 cd shadowsocks-ws
-npm i --no-workspaces
+npm i --no-workspaces --omit=dev
 npm run build
 ```
 

@@ -7,7 +7,9 @@
     "node": ">=20.16.0",
     "npm": ">=10.8.1"
   },
-  "workspaces":["local"],
+  "workspaces": [
+    "local"
+  ],
   "scripts": {
     "dev": "rollup -c && node --enable-source-maps server.min.mjs",
     "build": "rollup -c",
@@ -28,13 +30,15 @@
     "http-proxy-middleware": "^3.0.5",
     "ws": "^8.12.1"
   },
-  "optionalDependencies": {
+  "devDependencies": {
     "@eslint/js": "^9.38.0",
+    "eslint": "^9.38.0"
+  },
+  "optionalDependencies": {
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^0.4.4",
-    "eslint": "^9.38.0",
     "rollup": "^4.20.0"
   }
 }

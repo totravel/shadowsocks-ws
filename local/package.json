@@ -2,13 +2,13 @@
   "name": "shadowsocks-ws-local",
   "version": "9.0.0",
   "description": "Shadowsocks over WebSocket",
-  "main": "local.mjs",
+  "main": "index.mjs",
   "engines": {
     "node": ">=20.16.0",
     "npm": ">=10.8.1"
   },
   "scripts": {
-    "start": "node --no-warnings local.mjs"
+    "start": "node --no-warnings index.mjs"
   },
   "repository": {
     "type": "git",
